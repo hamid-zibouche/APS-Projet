@@ -31,7 +31,7 @@ open Ast
 %type <Ast.typee list> types
 %type <Ast.arg> arg
 %type <Ast.arg list> args
-%type <Ast.def> def
+%type <Ast.cmd> def
 
 
 %start prog
@@ -42,7 +42,7 @@ prog: LBRA cmds RBRA    { $2 }
 
 cmds:
   stat                  { [ASTStat $1] }
-  | def PVIR cmds       { (ASTStat $1)::$3 }
+  | def PVIR cmds       { $1::$3 }
 ;
 
 def:
@@ -52,8 +52,8 @@ def:
 ;
 
 type:
-  BOOL    { [ASTBool] }
-  | INT   { [ASTInt] }
+  BOOL    { ASTBool }
+  | INT   { ASTInt }
   | LPAR types VERS type RPAR  { ASTTypes($2,$4) }
 ;
 
@@ -64,7 +64,7 @@ types:
 
 args:
   arg     { [$1] }
-  | arg VIRG args  { $1::$2 }
+  | arg VIRG args  { $1::$3 }
 ;
 
 arg:

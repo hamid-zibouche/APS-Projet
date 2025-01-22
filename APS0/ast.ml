@@ -9,10 +9,12 @@
 (* ========================================================================== *)
 
 type typee =
-    ASTInt | ASTBool | ASTTypes of typee list * typee
+    ASTBool 
+    | ASTInt 
+    | ASTTypes of typee list * typee
 
 type arg =
-    ASTArg of string * typee list
+    ASTArg of string * typee
 
 type expr =
     ASTNum of int
@@ -28,9 +30,7 @@ type stat =
       
 type cmd =
     ASTStat of stat
-
-type def =
-    ASTConst of  string * typee * expr
+  | ASTConst of  string * typee * expr
   | ASTFun of string * typee * arg list * expr 
   | ASTFunRec of string * typee * arg list * expr
 
