@@ -20,7 +20,7 @@ rule token = parse
   | '('              { LPAR }
   | ')'              { RPAR }
   | ';'              { PVIR }
-  | ':'              { POIN }
+  | ':'              { POIN2 }
   | ','              { VIRG }
   | '*'              { ETOI }
   | "->"             { VERS }
