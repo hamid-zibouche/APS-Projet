@@ -8,6 +8,11 @@
 (* ==  Arbre de syntaxe abstraite                                          == *)
 (* ========================================================================== *)
 
+type typee =
+    ASTInt | ASTBool | ASTTypes of typee list * typee
+
+type arg =
+    ASTArg of string * typee list
 
 type expr =
     ASTNum of int
@@ -29,10 +34,7 @@ type def =
   | ASTFun of string * typee * arg list * expr 
   | ASTFunRec of string * typee * arg list * expr
 
-type typee =
-    ASTInt | ASTBool | ASTTypes of typee list * typee
 
-type arg =
-    ASTArg of string * typee list
+
 
 	
