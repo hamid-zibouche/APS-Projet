@@ -42,3 +42,14 @@ let string_of_cmds cmds =
 
 let print_prog prog =
   print_endline (string_of_cmds prog)
+;;
+
+let fname = Sys.argv.(1) in
+  let ic = open_in fname in
+    try
+      let lexbuf = Lexing.from_channel ic in
+      let p = Parser.prog Lexer.token lexbuf in
+        print_prog p;
+        print_string ".\n"
+    with Lexer.Eof ->
+    exit 0

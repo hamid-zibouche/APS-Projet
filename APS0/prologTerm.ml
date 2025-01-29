@@ -13,6 +13,8 @@ let rec print_expr e =
   match e with
       ASTNum n -> Printf.printf"num(%d)" n
     | ASTId x -> Printf.printf"id(%s)" x
+    | ASTIf (e1,e2,e3) -> Printf.printf"if("; print_expr e1; Printf.printf"," ; print_expr e2; Printf.printf","; print_expr e3; Printf.printf")"
+    | ASTAnd (e1,e2) -> Printf.printf"and("; print_expr e1; Printf.printf","; print_expr e2; Printf.printf")"
     | ASTApp(e, es) -> (
 	Printf.printf"app(";
 	print_expr e;
@@ -38,13 +40,25 @@ let print_stat s =
 	Printf.printf(")")
       )
 
+let rec print_typee c =
+  match c with
+    ASTBool  -> "bool_t"
+    |ASTInt  -> "int_t"
+    | ASTTypes (args, ret) ->
+      let args_str = String.concat " * " (List.map print_typee args) in
+      "(" ^ args_str ^ " -> " ^ print_typee ret ^ ")"
+        
+
 let print_cmd c =
   match c with
       ASTStat s -> print_stat s
+      |ASTConst (s,t,e) -> Printf.printf("const(%s") s; Printf.printf(",%s") (print_typee t); Printf.printf(",");print_expr e ; Printf.printf(")")
 	
+
 let rec print_cmds cs =
   match cs with
       c::[] -> print_cmd c
+      |c1::c2 -> print_cmd c1;Printf.printf(",") ;print_cmds c2
     | _ -> failwith "not yet implemented"
 	
 let print_prog p =

@@ -1,5 +1,6 @@
 LEX_ML = ocamllex
-YACC_ML = /usr/local/.opam/4.14.0/bin/ocamlyacc
+YACC_ML = /usr/bin/ocamlyacc
+#YACC_ML = /usr/local/bin/ocamlyacc #chemin de prof
 OCAMLC = ocamlc
 
 #parser: ast.ml lexer.mll parser.mly
@@ -18,12 +19,13 @@ print_ast:
 
 	$(OCAMLC) -c printer.ml
 
-	$(OCAMLC) -o print_ast ast.cmo lexer.cmo parser.cmo printer.cmo main.ml
+	$(OCAMLC) -o prologTerm ast.cmo lexer.cmo parser.cmo prologTerm.ml
 
 clean:
 	rm -f *.cmo
 	rm -f *.cmi
 	rm -f print_ast
+	rm -f prologTerm
 	rm -f lexer.ml
 	rm -f parser.mli
 	rm -f parser.ml
