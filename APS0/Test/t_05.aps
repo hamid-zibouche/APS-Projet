@@ -1,0 +1,3 @@
+[
+    ECHO [x:bool,y:bool,z:int] (if y x z)
+]

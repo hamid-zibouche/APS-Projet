@@ -1,4 +1,0 @@
-[
-    FUN concate int [x:bool,y:int] (if y x z);
-    ECHO fin
-]

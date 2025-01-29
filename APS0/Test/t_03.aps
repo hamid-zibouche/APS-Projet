@@ -1,8 +1,5 @@
 [
-    CONST x bool 5;
-    CONST y int 5;
-    CONST z int 7;
-    FUN concate int [x:bool,y:int] (if y x z);
+    FUN concate (int*bool->bool) [x:bool,y:int] (if y x z);
     FUN REC concate int [x:bool,y:int] (if y x z);
 
     ECHO y
