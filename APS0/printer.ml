@@ -31,11 +31,11 @@ let string_of_stat = function
 let rec string_of_cmd = function
   | ASTStat stat -> string_of_stat stat
   | ASTConst (name, typee, expr) ->
-      "const " ^ name ^ ": " ^ string_of_typee typee ^ " = " ^ string_of_expr expr
+      "const " ^ string_of_expr name ^ ": " ^ string_of_typee typee ^ " = " ^ string_of_expr expr
   | ASTFun (name, typee, args, body) ->
-      "fun " ^ name ^ ": " ^ string_of_typee typee ^ " (" ^ string_of_args args ^ ") = " ^ string_of_expr body
+      "fun " ^ string_of_expr name  ^ ": " ^ string_of_typee typee ^ " (" ^ string_of_args args ^ ") = " ^ string_of_expr body
   | ASTFunRec (name, typee, args, body) ->
-      "fun rec " ^ name ^ ": " ^ string_of_typee typee ^ " (" ^ string_of_args args ^ ") = " ^ string_of_expr body
+      "fun rec " ^ string_of_expr name  ^ ": " ^ string_of_typee typee ^ " (" ^ string_of_args args ^ ") = " ^ string_of_expr body
 
 let string_of_cmds cmds =
   String.concat "\n" (List.map string_of_cmd cmds)

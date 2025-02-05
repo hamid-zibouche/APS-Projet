@@ -18,7 +18,7 @@ let rec print_typee c =
       "(" ^ args_str ^ ", " ^ print_typee ret ^ ")"
  
 let print_arg (ASTArg (name, typee)) =
-  "(" ^name ^ ", " ^ print_typee typee ^ ")"
+  "(id(" ^ name ^ "), " ^ print_typee typee ^ ")"
 
 let print_args args ="[" ^
   (String.concat ", " (List.map print_arg args)) ^ "]"
@@ -59,18 +59,21 @@ let print_stat s =
 let print_cmd c =
   match c with
       ASTStat s -> print_stat s
-    | ASTConst (s,t,e) -> Printf.printf("const(%s") s;
+    | ASTConst (s,t,e) -> Printf.printf("const(");
+                          print_expr(s);
                           Printf.printf(",%s") (print_typee t); 
                           Printf.printf(",");
                           print_expr e ; 
                           Printf.printf(")")
-    | ASTFun (s,t,al,e) -> Printf.printf("fun(%s") s;
+    | ASTFun (s,t,al,e) -> Printf.printf("fun_t(");
+                          print_expr(s);
                           Printf.printf(",%s") (print_typee t); 
                           Printf.printf(",%s") (print_args al);
                           Printf.printf(",");
                           print_expr e ; 
                           Printf.printf(")")
-    | ASTFunRec (s,t,al,e) -> Printf.printf("funRec(%s") s;
+    | ASTFunRec (s,t,al,e) -> Printf.printf("funRec(");
+                          print_expr(s);
                           Printf.printf(",%s") (print_typee t); 
                           Printf.printf(",%s") (print_args al);
                           Printf.printf(",");

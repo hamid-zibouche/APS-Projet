@@ -46,9 +46,9 @@ cmds:
 ;
 
 def:
-  CONST IDENT type expr                   { ASTConst($2,$3,$4) }        
-  | FUN IDENT type LBRA args RBRA expr    { ASTFun($2,$3,$5,$7) }
-  | FUN REC IDENT type LBRA args RBRA expr { ASTFunRec($3,$4,$6,$8) }
+  CONST IDENT type expr                   { ASTConst(ASTId($2),$3,$4) }        
+  | FUN IDENT type LBRA args RBRA expr    { ASTFun(ASTId($2),$3,$5,$7) }
+  | FUN REC IDENT type LBRA args RBRA expr { ASTFunRec(ASTId($3),$4,$6,$8) }
 ;
 
 type:

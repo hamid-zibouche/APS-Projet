@@ -30,9 +30,9 @@ type stat =
       
 type cmd =
     ASTStat of stat
-  | ASTConst of  string * typee * expr
-  | ASTFun of string * typee * arg list * expr 
-  | ASTFunRec of string * typee * arg list * expr
+  | ASTConst of  expr * typee * expr
+  | ASTFun of expr * typee * arg list * expr 
+  | ASTFunRec of expr * typee * arg list * expr
 
 
 

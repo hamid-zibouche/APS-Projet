@@ -1,5 +1,5 @@
 [
-    FUN concate (int*bool->bool) [x:bool,y:int] (if y x z);
+    FUN concate bool [x:bool,y:int] (if y x z);
     FUN REC concate int [x:bool,y:int] (if y x z);
 
     ECHO y
