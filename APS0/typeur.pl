@@ -2,7 +2,7 @@ bt_prog(prog(Cs)) :- is_init_env(G), bt_cmds(G,Cs).
 
 is_init_env(G) :- G = [ (true, bool_t),
     (false, bool_t),
-    (not, fun_t(bool_t, bool_t)),
+    (not, fun_t([bool_t], bool_t)),
     (eq, fun_t([int_t,int_t], bool_t)),
     (lt, fun_t([int_t,int_t], bool_t)),
     (add, fun_t([int_t,int_t], int_t)),
