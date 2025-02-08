@@ -1,3 +1,7 @@
 [
-    ECHO [x:bool,y:bool,z:int] (if y x z)
+    CONST x int 1;
+    CONST y int 0;
+    FUN x int [y:bool] (if y x 3);
+    CONST y bool true;
+    ECHO (x y)
 ]

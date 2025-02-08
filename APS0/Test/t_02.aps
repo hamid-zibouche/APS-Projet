@@ -1,4 +1,4 @@
 [
-    CONST x int 5;
-    ECHO x
+    FUN REC si int [x:int] (if (eq x 0) 0 (si (sub x 1)));
+    ECHO (si 3)
 ]

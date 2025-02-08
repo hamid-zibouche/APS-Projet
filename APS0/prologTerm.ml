@@ -65,7 +65,7 @@ let print_cmd c =
                           Printf.printf(",");
                           print_expr e ; 
                           Printf.printf(")")
-    | ASTFun (s,t,al,e) -> Printf.printf("fun_t(");
+    | ASTFun (s,t,al,e) -> Printf.printf("fun(");
                           print_expr(s);
                           Printf.printf(",%s") (print_typee t); 
                           Printf.printf(",%s") (print_args al);

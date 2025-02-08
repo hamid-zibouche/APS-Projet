@@ -1,0 +1,5 @@
+[
+    CONST x int 0;
+    FUN x int [x:int] x;
+    ECHO (x x)
+]

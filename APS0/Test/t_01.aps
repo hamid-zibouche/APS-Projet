@@ -1,4 +1,4 @@
 [
     CONST x int 5;
-    ECHO 3
+    ECHO x
 ]
