@@ -28,7 +28,8 @@ let rec getNlist i list =
 
   let valIntToInt x =
     match x with 
-    InZ(e) -> e 
+    |InZ(e) -> e 
+    | _ -> failwith "valIntToInt : Valeur inattendue (pas un entier)"
 
 (* evaluation de chaque expression *)
 let rec evalExpr exp env =
@@ -42,8 +43,8 @@ let rec evalExpr exp env =
   |ASTFerm (args , e1) -> InF( e1 , sorteArgs args ,env)
   |ASTApp (func , exprs) ->
     (match func with 
-      ASTId ("not") -> if(evalExpr (getNlist 1 exprs) env = InZ(0)) then InZ(1) else InZ(0)
-      |ASTId ("eq") -> if (evalExpr (getNlist 1 exprs) = evalExpr (getNlist 2 exprs)) then InZ (1) else InZ(0)
+      |ASTId ("not") -> if(evalExpr (getNlist 1 exprs) env = InZ(0)) then InZ(1) else InZ(0)
+      |ASTId ("eq") -> if ((evalExpr (getNlist 1 exprs) env) = (evalExpr (getNlist 2 exprs) env)) then InZ (1) else InZ(0)
       |ASTId ("lt") -> if(valIntToInt (evalExpr (getNlist 1 exprs) env ) < valIntToInt(evalExpr (getNlist 2 exprs ) env)) then InZ(1) else InZ(0)
       |ASTId ("add") -> InZ(valIntToInt (evalExpr (getNlist 1 exprs) env) + valIntToInt(evalExpr (getNlist 2 exprs ) env))
       |ASTId ("sub") ->InZ(valIntToInt (evalExpr (getNlist 1 exprs) env) - valIntToInt(evalExpr (getNlist 2 exprs ) env))
@@ -56,7 +57,6 @@ let rec evalExpr exp env =
                                             :: ajouteArgsEnv argsfun exprs envF)
         )
     )
-    
   |ASTId (e) -> 
     (try 
     let valeur = List.assoc e env in valeur
@@ -67,7 +67,8 @@ let rec evalExpr exp env =
     | ([],[]) -> env
     | ([],_) -> failwith "Trop d'arguments"
     | (_,[]) -> failwith "Pas assez d'arguments"
-    | (a1::aq,e1::eq) -> (a1, evalExpr e1 env) :: List.remove_assoc a1 (ajouteArgsEnv aq eq env)
+    | (a1::aq,e1::eq) -> let new_env = ajouteArgsEnv aq eq env in
+                        (a1, evalExpr e1 env) :: List.remove_assoc a1 new_env
 
 (* Environnement initial *)
 let env = [
@@ -95,7 +96,7 @@ let () =
   run_test "Opération logique OR" (ASTOr (ASTId "false", ASTId "true")) env;
   run_test "Condition if-then-else (true)" (ASTIf (ASTId "true", ASTNum 100, ASTNum 500)) env;
   run_test "Condition if-then-else (false)" (ASTIf (ASTId "false", ASTNum 100, ASTNum 500)) env;
-   run_test "add" (ASTIf (ASTId "false", ASTNum 100, ASTNum 500)) env;
+  run_test "Addition" (ASTApp (ASTId "add", [ASTNum 10; ASTNum 5])) env;
 
 (* Test avec variable *)
   let env_with_x = ("x", InZ 5) :: env in
@@ -111,5 +112,5 @@ let () =
   
 
   (* app *)
-  let applied_lambda = ASTApp (ASTId("add"), [ASTNum (10), ASTNum(5)]) in
-  run_test "Application de fonction" applied_lambda env; 
+   let applied_lambda2 = (ASTApp (ASTId "eq", [ASTNum 10; ASTNum 5])) in
+  run_test "Egalite" applied_lambda2 env; 
