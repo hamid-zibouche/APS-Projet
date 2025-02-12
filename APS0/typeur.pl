@@ -37,9 +37,8 @@ bt_expr(G,if(E1,E2,E3),T) :- bt_expr(G,E1,bool_t), bt_expr(G,E2,T), bt_expr(G,E3
 bt_expr(G,and(E1,E2),bool_t) :- bt_expr(G,E1,bool_t), bt_expr(G,E2,bool_t).
 bt_expr(G,or(E1,E2),bool_t) :- bt_expr(G,E1,bool_t), bt_expr(G,E2,bool_t).
 bt_expr(G,app(id(F),A),T) :- parcoursArg(G,A,L2), member((F,fun_t(L2,T)), G).
-
-%% les fermettures ne sont pas encore testees
-bt_expr(G,ferm(_,_),_).
+bt_expr(G,app(F,A),T) :- parcoursArg(G,A,L2), bt_expr(G,F,fun_t(L2,T)).
+bt_expr(G,ferm(A,E),fun_t(TA,T)) :- parcoursArgFun(A,TA), ajoutRec(G,A,G1), bt_expr(G1,E,T).
 
 ajoutRec(G, [], G).
 ajoutRec(G, [(id(X),T)|L], G1) :- 
@@ -60,5 +59,5 @@ update(G1, X, T, G2) :-
     ;   G2 = [(X,T)|G1]       
     ).
 
-:-  read(X),writeln(X),
+:-  read(X),
     bt_prog(X).
