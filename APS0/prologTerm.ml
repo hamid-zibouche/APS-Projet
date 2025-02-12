@@ -18,7 +18,7 @@ let rec print_typee c =
       "(" ^ args_str ^ ", " ^ print_typee ret ^ ")"
  
 let print_arg (ASTArg (name, typee)) =
-  "(id(" ^ name ^ "), " ^ print_typee typee ^ ")"
+  "(id(\"" ^ name ^ "\"), " ^ print_typee typee ^ ")"
 
 let print_args args ="[" ^
   (String.concat ", " (List.map print_arg args)) ^ "]"
@@ -27,7 +27,7 @@ let print_args args ="[" ^
 let rec print_expr e =
   match e with
       ASTNum n -> Printf.printf"num(%d)" n
-    | ASTId x -> Printf.printf"id(%s)" x
+    | ASTId x -> Printf.printf"id(\"%s\")" x
     | ASTIf (e1,e2,e3) -> Printf.printf "if("; print_expr e1; Printf.printf"," ; print_expr e2; Printf.printf","; print_expr e3; Printf.printf")"
     | ASTAnd (e1,e2) -> Printf.printf"and("; print_expr e1; Printf.printf","; print_expr e2; Printf.printf")"
     | ASTOr (e1,e2) -> Printf.printf"or("; print_expr e1; Printf.printf","; print_expr e2; Printf.printf")"

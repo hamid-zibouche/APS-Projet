@@ -1,14 +1,14 @@
 bt_prog(prog(Cs)) :- is_init_env(G), bt_cmds(G,Cs).
 
-is_init_env(G) :- G = [ (true, bool_t),
-    (false, bool_t),
-    (not, fun_t([bool_t], bool_t)),
-    (eq, fun_t([int_t,int_t], bool_t)),
-    (lt, fun_t([int_t,int_t], bool_t)),
-    (add, fun_t([int_t,int_t], int_t)),
-    (sub, fun_t([int_t,int_t], int_t)),
-    (mul, fun_t([int_t,int_t], int_t)),
-    (div, fun_t([int_t,int_t], int_t))].
+is_init_env(G) :- G = [ ("true", bool_t),
+    ("false", bool_t),
+    ("not", fun_t([bool_t], bool_t)),
+    ("eq", fun_t([int_t,int_t], bool_t)),
+    ("lt", fun_t([int_t,int_t], bool_t)),
+    ("add", fun_t([int_t,int_t], int_t)),
+    ("sub", fun_t([int_t,int_t], int_t)),
+    ("mul", fun_t([int_t,int_t], int_t)),
+    ("div", fun_t([int_t,int_t], int_t))].
 
 %% commandes
 bt_cmds(G,[X]) :- bt_stat(G,X).
