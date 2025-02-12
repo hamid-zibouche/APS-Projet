@@ -111,6 +111,26 @@ let () =
   run_test "Application de fonction" applied_lambda env; 
   
 
-  (* app *)
+  (* test eq *)
    let applied_lambda2 = (ASTApp (ASTId "eq", [ASTNum 10; ASTNum 5])) in
   run_test "Egalite" applied_lambda2 env; 
+
+  (* test lt *)
+  let applied_lambda2 = (ASTApp (ASTId "lt", [ASTNum 4; ASTNum 5])) in
+  run_test "less then" applied_lambda2 env; 
+
+  (* test not *)
+  let applied_lambda2 = (ASTApp (ASTId "not", [ASTId "false"])) in
+  run_test "not" applied_lambda2 env; 
+
+  (* test sub *)
+  let applied_lambda2 = (ASTApp (ASTId "sub", [ASTNum 10 ; ASTNum 13])) in
+  run_test "sub" applied_lambda2 env; 
+
+  (* test mul *)
+  let applied_lambda2 = (ASTApp (ASTId "mul", [ASTNum 10 ; ASTNum 13])) in
+  run_test "mul" applied_lambda2 env; 
+
+  (* test mul *)
+  let applied_lambda2 = (ASTApp (ASTId "div", [ASTNum 130 ; ASTNum 10])) in
+  run_test "div" applied_lambda2 env; 
