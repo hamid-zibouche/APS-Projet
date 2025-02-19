@@ -60,6 +60,7 @@ let rec evalExpr exp env =
           InF(eprime, argsfun, envF) ->  evalExpr eprime (ajouteArgsEnv argsfun exprs envF env)
           |InFR(eprime,id ,argsfun, envF) -> evalExpr eprime ( (id,InFR(eprime,id ,argsfun, envF))
                                             :: ajouteArgsEnv argsfun exprs envF env)
+          |_ -> failwith "Fonction non définie"
         ) 
     )
   |ASTId (e) -> 
@@ -86,6 +87,7 @@ let rec evalCmd cmd env sortie =
   |ASTFun (ASTId(s),_,args,e) -> ((s, InF( e , sorteArgs args ,env)) :: List.remove_assoc s env, sortie) 
   |ASTFunRec(ASTId(s),_,args,e) -> ((s, InFR( e ,s, sorteArgs args ,env)) :: List.remove_assoc s env , sortie)
   |ASTStat(e) -> (env, evalInst e env sortie)
+  |_ -> failwith "Erreur dans la syntaxe"
 
 (* evaluation de la suite de commandes *)
 let rec evalCmds cmds env sortie =
@@ -95,12 +97,13 @@ let rec evalCmds cmds env sortie =
       | (e, s) -> s @ (evalCmds q e sortie))
 
 (* evaluation du programme *)
-let rec evalProg prog = evalCmds prog [] [] ;;
+let rec evalProg prog = evalCmds prog [] []
 
 let rec afficheliste l = 
   match l with 
   |[]->""
-  |(InZ n) :: q -> (string_of_int n) ^ "\n" ^ (afficheliste q);;
+  |(InZ n) :: q -> (string_of_int n) ^ "\n" ^ (afficheliste q)
+  |_ -> failwith "Erreur dans la syntaxe";;
 
 let fname = Sys.argv.(1) in
 let ic = open_in fname in
