@@ -1,7 +1,11 @@
 [
     CONST x int 1;
-    CONST y int 0;
-    FUN x int [y:bool] (if y x 3);
+
     CONST y bool true;
-    ECHO (x y)
+    
+    FUN f int [y:bool] (if y x 3);
+
+    CONST x int 5;
+    CONST y bool false;
+    ECHO (f y)
 ]

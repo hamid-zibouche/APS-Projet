@@ -1,5 +1,5 @@
 [
-    CONST x int 0;
-    FUN x int [x:int] x;
-    ECHO (x x)
+    CONST y int 2;
+    FUN x int [y:int] y;
+    ECHO (x 3)
 ]
