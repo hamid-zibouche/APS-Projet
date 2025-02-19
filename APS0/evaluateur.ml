@@ -70,6 +70,18 @@ let rec evalExpr exp env =
     | (a1::aq,e1::eq) -> let new_env = ajouteArgsEnv aq eq env in
                         (a1, evalExpr e1 env) :: List.remove_assoc a1 new_env
 
+let rec evalInst inst env sortie = 
+  match inst with
+  ASTEcho(n) -> sortie @ [evalExpr n env]
+
+let rec evalCmd cmd env sortie = 
+  match cmd with
+  ASTConst (ASTId(s),_,v) -> ((s, evalExpr v env) :: List.remove_assoc s env , sortie)
+  |ASTFun (ASTId(s),_,args,e) -> ((s, InF( e , sorteArgs args ,env)) :: List.remove_assoc s env, sortie) 
+  |ASTFunRec(ASTId(s),_,args,e) -> ((s, InFR( e ,s, sorteArgs args ,env)) :: List.remove_assoc s env , sortie)
+  |ASTStat(e) -> (env, evalInst e env sortie)
+
+
 (* Environnement initial *)
 let env = [
   ("true", InZ 1);
