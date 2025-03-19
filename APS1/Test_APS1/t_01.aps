@@ -1,0 +1,6 @@
+[
+    CONST x int 5;
+    VAR y int;
+    SET y 5;
+    ECHO y
+]

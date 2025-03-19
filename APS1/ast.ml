@@ -27,12 +27,21 @@ type expr =
 
 type stat =
     ASTEcho of expr
-      
-type cmd =
+    |ASTSet of expr * expr
+    |ASTIFB of expr * cmd list * cmd list
+    |ASTWhile of expr  * cmd list
+    |ASTCall of expr  * expr list
+and
+   
+cmd =
     ASTStat of stat
   | ASTConst of  expr * typee * expr
   | ASTFun of expr * typee * arg list * expr 
   | ASTFunRec of expr * typee * arg list * expr
+  | ASTVar of expr * typee
+  | ASTProc of expr * typee * arg list * cmd list
+  | ASTProcRec of expr * typee * arg list * cmd list
+
 
 
 

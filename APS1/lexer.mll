@@ -27,7 +27,13 @@ rule token = parse
   | "CONST"          { CONST }
   | "FUN"            { FUN }
   | "REC"            { REC }
+  | "VAR"            { VAR }
+  | "PROC"           { PROC }
   | "ECHO"           { ECHO }
+  | "SET"            { SET }
+  | "IF"             { IFB }
+  | "WHILE"          { WHILE }
+  | "CALL"           { CALL }
   | "if"             { IF }
   | "and"            { AND }
   | "or"             { OR }

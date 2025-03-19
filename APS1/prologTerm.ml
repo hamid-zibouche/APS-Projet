@@ -50,11 +50,9 @@ and print_exprs es =
 
 let print_stat s =
   match s with
-      ASTEcho e -> (
-  Printf.printf("echo(");
-  print_expr(e);
-  Printf.printf(")")
-      )
+    ASTEcho e -> (Printf.printf("echo("); print_expr(e); Printf.printf(")"))
+    |ASTSet 
+
 
 let print_cmd c =
   match c with

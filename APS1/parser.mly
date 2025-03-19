@@ -19,7 +19,7 @@ open Ast
 %token LBRA RBRA
 %token ECHO
 %token PVIR POIN2 VIRG ETOI VERS
-%token CONST FUN REC 
+%token CONST FUN REC VAR PROC SET IFB WHILE CALL
 %token IF AND OR 
 %token BOOL INT
 
@@ -37,18 +37,25 @@ open Ast
 %start prog
 
 %%
-prog: LBRA cmds RBRA    { $2 }
+prog: block    { $1 }
+;
+
+block: LBRA cmds RBRA    { $2 }
 ;
 
 cmds:
   stat                  { [ASTStat $1] }
   | def PVIR cmds       { $1::$3 }
+  | stat PVIR cmds      { ASTStat($1)::$3 }
 ;
 
 def:
-  CONST IDENT type expr                   { ASTConst(ASTId($2),$3,$4) }        
-  | FUN IDENT type LBRA args RBRA expr    { ASTFun(ASTId($2),$3,$5,$7) }
-  | FUN REC IDENT type LBRA args RBRA expr { ASTFunRec(ASTId($3),$4,$6,$8) }
+  CONST IDENT type expr                        { ASTConst(ASTId($2),$3,$4) }        
+  | FUN IDENT type LBRA args RBRA expr         { ASTFun(ASTId($2),$3,$5,$7) }
+  | FUN REC IDENT type LBRA args RBRA expr     { ASTFunRec(ASTId($3),$4,$6,$8) }
+  | VAR IDENT type                             { ASTVar(ASTId($2),$3) }
+  | PROC IDENT type LBRA args RBRA block       { ASTProc(ASTId($2),$3,$5,$7) }
+  | PROC REC IDENT type LBRA args RBRA block   { ASTProcRec(ASTId($3),$4,$6,$8) }
 ;
 
 type:
@@ -72,17 +79,21 @@ arg:
 ;
 
 stat:
-  ECHO expr             { ASTEcho($2) }
+  ECHO expr                   { ASTEcho($2) }
+  |SET IDENT expr             { ASTSet(ASTId($2),$3) }
+  |IFB expr block block       { ASTIFB($2,$3,$4) }
+  |WHILE expr block           { ASTWhile($2,$3) }
+  |CALL IDENT exprs           { ASTCall(ASTId($2),$3) }
 ;
 
 expr:
-  NUM                   { ASTNum($1) }
-| IDENT                 { ASTId($1) }
+  NUM                          { ASTNum($1) }
+| IDENT                        { ASTId($1) }
 | LPAR IF expr expr expr RPAR  { ASTIf($3, $4, $5) }
 | LPAR AND expr expr RPAR      { ASTAnd($3, $4) }
 | LPAR OR expr expr RPAR       { ASTOr($3, $4) }
-| LPAR expr exprs RPAR  { ASTApp($2, $3) }
-| LBRA args RBRA expr   { ASTFerm($2, $4) }
+| LPAR expr exprs RPAR         { ASTApp($2, $3) }
+| LBRA args RBRA expr          { ASTFerm($2, $4) }
 ;
 
 exprs :

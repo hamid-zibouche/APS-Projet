@@ -1,0 +1,3 @@
+[
+    ECHO ([x:bool,y:int] (if x y 3) false 2)
+]

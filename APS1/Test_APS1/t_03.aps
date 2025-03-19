@@ -1,0 +1,6 @@
+[
+    
+    FUN concate int [x:bool] (add x 1);
+
+    ECHO (concate 1)
+]
