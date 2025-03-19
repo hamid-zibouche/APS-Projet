@@ -48,47 +48,78 @@ and print_exprs es =
   print_exprs es
       )
 
-let print_stat s =
+let rec print_stat s =
   match s with
     ASTEcho e -> (Printf.printf("echo("); print_expr(e); Printf.printf(")"))
-    |ASTSet 
+    |ASTSet (ident,v) -> (Printf.printf("set("); print_expr(ident); Printf.printf(","); print_expr(v); Printf.printf(")"))
+    |ASTIFB (e,b1,b2) -> Printf.printf "ifb("; print_expr e; Printf.printf"," ; print_cmds b1; Printf.printf","; print_cmds b2; Printf.printf ")"
+    |ASTWhile (e,b) -> Printf.printf "while("; print_expr e; Printf.printf"," ; print_cmds b ; Printf.printf ")"
+    |ASTCall (ident,args) -> Printf.printf "call("; print_expr ident; Printf.printf"," ; print_exprs args ; Printf.printf ")"
+and
 
-
-let print_cmd c =
+ print_cmd c =
   match c with
       ASTStat s -> print_stat s
-    | ASTConst (s,t,e) -> Printf.printf("const(");
-                          print_expr(s);
+    | ASTConst (ident,t,e) -> Printf.printf("const(");
+                          print_expr(ident);
                           Printf.printf(",%s") (print_typee t); 
                           Printf.printf(",");
                           print_expr e ; 
                           Printf.printf(")")
-    | ASTFun (s,t,al,e) -> Printf.printf("fun(");
-                          print_expr(s);
-                          Printf.printf(",%s") (print_typee t); 
-                          Printf.printf(",%s") (print_args al);
-                          Printf.printf(",");
-                          print_expr e ; 
-                          Printf.printf(")")
-    | ASTFunRec (s,t,al,e) -> Printf.printf("funRec(");
-                          print_expr(s);
+    | ASTFun (ident,t,al,e) -> Printf.printf("fun(");
+                          print_expr(ident);
                           Printf.printf(",%s") (print_typee t); 
                           Printf.printf(",%s") (print_args al);
                           Printf.printf(",");
                           print_expr e ; 
                           Printf.printf(")")
-	
+    | ASTFunRec (ident,t,al,e) -> Printf.printf("funRec(");
+                          print_expr(ident);
+                          Printf.printf(",%s") (print_typee t); 
+                          Printf.printf(",%s") (print_args al);
+                          Printf.printf(",");
+                          print_expr e ; 
+                          Printf.printf(")")
+    | ASTVar (ident,t) -> Printf.printf("var(");
+                          print_expr(ident);
+                          Printf.printf(",%s") (print_typee t); 
+                          Printf.printf(")")
+    | ASTProc (ident,t,args,cmds) -> Printf.printf("proc(");
+                          print_expr(ident);
+                          Printf.printf(",%s") (print_typee t); 
+                          Printf.printf(",%s") (print_args args);
+                          Printf.printf(",");
+                          print_cmds cmds ; 
+                          Printf.printf(")")
+    | ASTProcRec (ident,t,args,cmds) -> Printf.printf("procRec(");
+                          print_expr(ident);
+                          Printf.printf(",%s") (print_typee t); 
+                          Printf.printf(",%s") (print_args args);
+                          Printf.printf(",");
+                          print_cmds cmds ; 
+                          Printf.printf(")");
+    
+and
 
-let rec print_cmds cs =
-  match cs with
-      c::[] -> print_cmd c
-      |c1::c2 -> print_cmd c1;Printf.printf(",") ;print_cmds c2
-    | _ -> failwith "not yet implemented"
+ print_cmds cs =
+  Printf.printf "block([";
+  (match cs with
+  | [] -> ()
+  | _ -> 
+      let rec aux = function
+        | [c] -> print_cmd c  
+        | c :: cs -> 
+            print_cmd c;
+            Printf.printf ",";
+            aux cs
+        | _ -> failwith "not yet implemented"
+      in aux cs);
+  Printf.printf "])"
 	
 let print_prog p =
-  Printf.printf("prog([");
+  Printf.printf("prog(");
   print_cmds p;
-  Printf.printf("])")
+  Printf.printf(")")
 ;;
 	
 let fname = Sys.argv.(1) in
