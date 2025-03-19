@@ -15,7 +15,7 @@ let rec print_typee c =
     |ASTInt  -> "int_t"
     | ASTTypes (args, ret) ->
       let args_str = "[" ^ String.concat ", " (List.map print_typee args) ^ "]" in
-      "(" ^ args_str ^ ", " ^ print_typee ret ^ ")"
+      "fun_t(" ^ args_str ^ ", " ^ print_typee ret ^ ")"
  
 let print_arg (ASTArg (name, typee)) =
   "(id(\"" ^ name ^ "\"), " ^ print_typee typee ^ ")"
