@@ -27,6 +27,7 @@ clean:
 	rm -f *.cmi
 	rm -f print_ast
 	rm -f prologTerm
+	rm -f printer
 	rm -f evaluateur
 	rm -f lexer.ml
 	rm -f parser.mli

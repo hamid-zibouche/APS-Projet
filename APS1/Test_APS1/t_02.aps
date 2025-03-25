@@ -3,11 +3,11 @@
   FUN add int [a: int, b: int]  (add a b);
   FUN REC fact int [n: int]  (if n n 1);
   VAR y int;
-  PROC printVal int [v: int] [
+  PROC printVal [v: int] [
     ECHO v;
     SET y v
   ];
-  PROC REC loop int [n: int] [
+  PROC REC loop [n: int] [
     IF n [
       ECHO n
      ] [

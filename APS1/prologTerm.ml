@@ -54,7 +54,7 @@ let rec print_stat s =
     |ASTSet (ident,v) -> (Printf.printf("set("); print_expr(ident); Printf.printf(","); print_expr(v); Printf.printf(")"))
     |ASTIFB (e,b1,b2) -> Printf.printf "ifb("; print_expr e; Printf.printf"," ; print_cmds b1; Printf.printf","; print_cmds b2; Printf.printf ")"
     |ASTWhile (e,b) -> Printf.printf "while("; print_expr e; Printf.printf"," ; print_cmds b ; Printf.printf ")"
-    |ASTCall (ident,args) -> Printf.printf "call("; print_expr ident; Printf.printf"," ; print_exprs args ; Printf.printf ")"
+    |ASTCall (ident,args) -> Printf.printf "call("; print_expr ident; Printf.printf",[" ; print_exprs args ; Printf.printf "])"
 and
 
  print_cmd c =
@@ -84,16 +84,14 @@ and
                           print_expr(ident);
                           Printf.printf(",%s") (print_typee t); 
                           Printf.printf(")")
-    | ASTProc (ident,t,args,cmds) -> Printf.printf("proc(");
+    | ASTProc (ident,args,cmds) -> Printf.printf("proc(");
                           print_expr(ident);
-                          Printf.printf(",%s") (print_typee t); 
                           Printf.printf(",%s") (print_args args);
                           Printf.printf(",");
                           print_cmds cmds ; 
                           Printf.printf(")")
-    | ASTProcRec (ident,t,args,cmds) -> Printf.printf("procRec(");
+    | ASTProcRec (ident,args,cmds) -> Printf.printf("procRec(");
                           print_expr(ident);
-                          Printf.printf(",%s") (print_typee t); 
                           Printf.printf(",%s") (print_args args);
                           Printf.printf(",");
                           print_cmds cmds ; 

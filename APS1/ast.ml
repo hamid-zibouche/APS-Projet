@@ -39,8 +39,8 @@ cmd =
   | ASTFun of expr * typee * arg list * expr 
   | ASTFunRec of expr * typee * arg list * expr
   | ASTVar of expr * typee
-  | ASTProc of expr * typee * arg list * cmd list
-  | ASTProcRec of expr * typee * arg list * cmd list
+  | ASTProc of expr * arg list * cmd list
+  | ASTProcRec of expr * arg list * cmd list
 
 
 

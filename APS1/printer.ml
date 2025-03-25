@@ -56,11 +56,11 @@ and string_of_cmd = function
       " (" ^ string_of_args args ^ ") = " ^ string_of_expr body
   | ASTVar (name, typee) ->
       "var " ^ string_of_expr name ^ ": " ^ string_of_typee typee
-  | ASTProc (name, typee, args, block) ->
-      "proc " ^ string_of_expr name ^ ": " ^ string_of_typee typee ^
+  | ASTProc (name, args, block) ->
+      "proc " ^ string_of_expr name ^ ": " ^
       " (" ^ string_of_args args ^ ") " ^ string_of_cmds block
-  | ASTProcRec (name, typee, args, block) ->
-      "proc rec " ^ string_of_expr name ^ ": " ^ string_of_typee typee ^
+  | ASTProcRec (name, args, block) ->
+      "proc rec " ^ string_of_expr name ^ ": " ^ 
       " (" ^ string_of_args args ^ ") " ^ string_of_cmds block
 
 and string_of_cmds cmds =

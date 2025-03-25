@@ -54,8 +54,8 @@ def:
   | FUN IDENT type LBRA args RBRA expr         { ASTFun(ASTId($2),$3,$5,$7) }
   | FUN REC IDENT type LBRA args RBRA expr     { ASTFunRec(ASTId($3),$4,$6,$8) }
   | VAR IDENT type                             { ASTVar(ASTId($2),$3) }
-  | PROC IDENT type LBRA args RBRA block       { ASTProc(ASTId($2),$3,$5,$7) }
-  | PROC REC IDENT type LBRA args RBRA block   { ASTProcRec(ASTId($3),$4,$6,$8) }
+  | PROC IDENT LBRA args RBRA block       { ASTProc(ASTId($2),$4,$6) }
+  | PROC REC IDENT LBRA args RBRA block   { ASTProcRec(ASTId($3),$5,$7) }
 ;
 
 type:
