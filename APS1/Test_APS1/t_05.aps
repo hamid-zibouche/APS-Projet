@@ -1,0 +1,14 @@
+[
+    PROC set [f:(int*int->int),x:int]
+    [
+        VAR i int;
+        SET i 0;
+        WHILE (lt i 5) [
+            SET x (add (f i x) x);
+            SET i (add i 1)
+        ]
+    ];
+    CONST nb int 6;
+    CONST incr int 2;
+    CALL set [x:int,y:int] (add x y) nb 
+]

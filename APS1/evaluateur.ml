@@ -2,18 +2,58 @@ open Ast
 
 type ztype = InZ of int  
 
-type fType = InF of expr * (string list) * env  and
+type fType = InF of expr * (string list) * env
 
-fRType = InFR of expr * string * (string list) * env  and
+type fRType = InFR of expr * string * (string list) * env
 
-valType = 
+type aType = InA of int
+
+type pType = InP of (cmd list) * (string list) * env
+
+type pRType = InPR of (cmd list) * string * (string list) * env
+
+type valType = 
   | InZ of int
   | InF of expr * (string list) * env  
-  | InFR of expr * string * (string list) * env  and
+  | InFR of expr * string * (string list) * env
+  | InA of int
+  | InP of (cmd list) * (string list) * env
+  | InPR of (cmd list) * string * (string list) * env
 
-env = (string * valType) list  
+type memoire = (aType * valType) list
+
+type env = (string * aType) list 
 
 type flux_S = ztype list  
+
+(* compteur d'adresses de la mémoire*)
+let compteur = ref 0
+
+let incrementer () =
+  compteur := !compteur + 1;
+  !compteur
+
+(* Fonction pour rechercher ou allouer une adresse *)
+let find_or_allocate e env memoire =
+  (try 
+        let adresse = List.assoc e env in 
+        (try 
+          List.assoc adresse memoire in (adresse, valeur, env, memoire)   
+          with Not_found -> failwith ("Adresse introuvable en mémoire : " ^ string_of_int (match adresse with InA i -> i))
+        )
+      with Not_found -> failwith ("Variable non définie : " ^ e))
+
+
+  try
+    let adresse = List.assoc e env in
+    let valeur = List.assoc adresse memoire in
+    (adresse, valeur, env, memoire)  (* Retourne l'adresse, la valeur et les structures inchangées *)
+  with Not_found ->
+    (* Allouer une nouvelle adresse *)
+    let new_addr = InA (incrementer ()) in
+    let new_env = (e, new_addr) :: env in
+    let new_memoire = (new_addr, VInt 0) :: memoire in (* Initialise la mémoire avec une valeur par défaut *)
+    (new_addr, VInt 0, new_env, new_memoire)
 
 
 let rec sorteArgs args = 
@@ -37,7 +77,7 @@ let string_of_val = function
 | InFR (_, name, args, _) -> "<recursive function " ^ name ^ "> with args: " ^ String.concat ", " args
 
 (* evaluation de chaque expression *)
-let rec evalExpr exp env =
+let rec evalExpr exp env memoire =
   match exp with
   |ASTId ("true") -> InZ(1)
   |ASTId("false") -> InZ(0)
@@ -63,10 +103,17 @@ let rec evalExpr exp env =
           |_ -> failwith "Fonction non définie"
         ) 
     )
-  |ASTId (e) -> 
-    (try 
-    let valeur = List.assoc e env in valeur
-  with Not_found -> failwith("Variable non definie:" ^ e)) and
+    | ASTId e -> 
+      (try 
+        let adresse = List.assoc e env in 
+        (try 
+          List.assoc adresse memoire 
+        with Not_found -> failwith ("Adresse introuvable en mémoire : " ^ string_of_int (match adresse with InA i -> i))
+        )
+      with Not_found -> failwith ("Variable non définie : " ^ e))
+  
+
+  with Not_found -> ) and
 
   ajouteArgsEnv args exprs env envCours=
     match (args, exprs) with
