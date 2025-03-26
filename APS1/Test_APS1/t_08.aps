@@ -1,7 +1,0 @@
-[
-    CONST x int 3;
-    CONST y int 10;
-    FUN f int [x : bool, y : int] (if x y 1);
-    CONST x int 2;
-    ECHO (f (eq x 3) y)
-]

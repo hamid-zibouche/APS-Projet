@@ -1,6 +1,0 @@
-[
-    CONST y int 2;
-    Var z int
-    FUN x int [x:int] x;
-    ECHO (x 3)
-]

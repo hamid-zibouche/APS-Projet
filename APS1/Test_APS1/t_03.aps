@@ -1,6 +1,9 @@
 [
-    
-    FUN concate int [x:bool] (add x 1);
-
-    ECHO (concate 1)
+    VAR y int;
+    PROC printVal [v: int] [
+        ECHO v;
+        SET y v
+    ];
+    CALL printVal 10;
+    ECHO y
 ]

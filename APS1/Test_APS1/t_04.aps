@@ -1,3 +1,14 @@
 [
-    ECHO (add 1 2)
+    PROC REC loop [n: int, y: int] [
+    IF (eq n 0) [
+      ECHO n
+     ] [
+      WHILE (lt y 1) [
+        SET y (sub y 1);
+        CALL loop (sub n 1) y
+      ]
+     ]
+    ];
+
+    ECHO 2
 ]
