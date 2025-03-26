@@ -22,7 +22,7 @@ type valType =
 
 type memoire = (aType * valType) list
 
-type env = (string * aType) list 
+type env = (string * valType) list 
 
 type flux_S = ztype list  
 
@@ -32,28 +32,6 @@ let compteur = ref 0
 let incrementer () =
   compteur := !compteur + 1;
   !compteur
-
-(* Fonction pour rechercher ou allouer une adresse *)
-let find_or_allocate e env memoire =
-  (try 
-        let adresse = List.assoc e env in 
-        (try 
-          List.assoc adresse memoire in (adresse, valeur, env, memoire)   
-          with Not_found -> failwith ("Adresse introuvable en mémoire : " ^ string_of_int (match adresse with InA i -> i))
-        )
-      with Not_found -> failwith ("Variable non définie : " ^ e))
-
-
-  try
-    let adresse = List.assoc e env in
-    let valeur = List.assoc adresse memoire in
-    (adresse, valeur, env, memoire)  (* Retourne l'adresse, la valeur et les structures inchangées *)
-  with Not_found ->
-    (* Allouer une nouvelle adresse *)
-    let new_addr = InA (incrementer ()) in
-    let new_env = (e, new_addr) :: env in
-    let new_memoire = (new_addr, VInt 0) :: memoire in (* Initialise la mémoire avec une valeur par défaut *)
-    (new_addr, VInt 0, new_env, new_memoire)
 
 
 let rec sorteArgs args = 
@@ -103,17 +81,18 @@ let rec evalExpr exp env memoire =
           |_ -> failwith "Fonction non définie"
         ) 
     )
-    | ASTId e -> 
+  | ASTId e -> 
       (try 
-        let adresse = List.assoc e env in 
-        (try 
-          List.assoc adresse memoire 
-        with Not_found -> failwith ("Adresse introuvable en mémoire : " ^ string_of_int (match adresse with InA i -> i))
-        )
-      with Not_found -> failwith ("Variable non définie : " ^ e))
+          let valeur = List.assoc e env in 
+          match valeur with
+          | InA a -> 
+              (try 
+                  List.assoc (InA a) memoire
+              with Not_found -> failwith ("Adresse " ^ string_of_int a ^ " non trouvée en mémoire"))
+          | v -> v  
+      with Not_found -> failwith ("Variable " ^ e ^ " non trouvée dans l'environnement"))
   
-
-  with Not_found -> ) and
+        and
 
   ajouteArgsEnv args exprs env envCours=
     match (args, exprs) with
@@ -124,16 +103,22 @@ let rec evalExpr exp env memoire =
                         (a1, evalExpr e1 envCours) :: List.remove_assoc a1 new_env
 
 (* evaluation de chaque commande *)
-let rec evalInst inst env sortie = 
+let rec evalInst inst env memoire sortie = 
   match inst with
-  ASTEcho(n) -> sortie @ [evalExpr n env]
+  ASTEcho(n) -> (env, memoire, sortie @ [evalExpr n env])
+  |ASTSet(ASTId(s), e) -> let adresse = List.assoc s env in  
+    (env,  (adresse, evalExpr v env) :: List.remove_assoc s env  ,  sortie  )
+  |
 
-let rec evalCmd cmd env sortie = 
+let rec evalCmd cmd env memoire sortie = 
   match cmd with
-  ASTConst (ASTId(s),_,v) -> ((s, evalExpr v env) :: List.remove_assoc s env , sortie)
-  |ASTFun (ASTId(s),_,args,e) -> ((s, InF( e , sorteArgs args ,env)) :: List.remove_assoc s env, sortie) 
-  |ASTFunRec(ASTId(s),_,args,e) -> ((s, InFR( e ,s, sorteArgs args ,env)) :: List.remove_assoc s env , sortie)
-  |ASTStat(e) -> (env, evalInst e env sortie)
+  ASTConst (ASTId(s),_,v) -> ((s, evalExpr v env) :: List.remove_assoc s env , memoire, sortie)
+  |ASTFun (ASTId(s),_,args,e) -> ((s, InF( e , sorteArgs args ,env)) :: List.remove_assoc s env, memoire, sortie) 
+  |ASTFunRec (ASTId(s),_,args,e) -> ((s, InFR( e ,s, sorteArgs args ,env)) :: List.remove_assoc s env , memoire,  sortie)
+  |ASTStat(e) -> evalInst e env memoire sortie
+  |ASTVar(ASTId(s),_) -> ( (s, InA (incrementer ())) :: List.remove_assoc s env , memoire, sortie)
+  |ASTProc (ASTId(s),args,bk) -> ((s, InP( bk , sorteArgs args ,env)) :: List.remove_assoc s env, memoire, sortie)
+  |ASTProcRec (ASTId(s),args,bk) -> ((s, InPR(bk ,s, sorteArgs args ,env)) :: List.remove_assoc s env , memoire,  sortie)
   |_ -> failwith "Erreur dans la syntaxe"
 
 (* evaluation de la suite de commandes *)
