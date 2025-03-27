@@ -2,27 +2,25 @@ open Ast
 
 type ztype = InZ of int  
 
-type fType = InF of expr * (string list) * env
+type fType = InF of expr * (string list) * env and
 
-type fRType = InFR of expr * string * (string list) * env
+ fRType = InFR of expr * string * (string list) * env and
 
-type aType = InA of int
+ pType = InP of (cmd list) * (string list) * env and
 
-type pType = InP of (cmd list) * (string list) * env
+ pRType = InPR of (cmd list) * string * (string list) * env and
 
-type pRType = InPR of (cmd list) * string * (string list) * env
-
-type valType = 
+ valType = 
   | InZ of int
   | InF of expr * (string list) * env  
   | InFR of expr * string * (string list) * env
   | InA of int
   | InP of (cmd list) * (string list) * env
-  | InPR of (cmd list) * string * (string list) * env
+  | InPR of (cmd list) * string * (string list) * env and
 
-type memoire = (aType * valType) list
+ memoire = (valType * valType) list and
 
-type env = (string * valType) list 
+ env = (string * valType) list 
 
 type flux_S = ztype list  
 
@@ -60,24 +58,24 @@ let rec evalExpr exp env memoire =
   |ASTId ("true") -> InZ(1)
   |ASTId("false") -> InZ(0)
   |ASTNum(n) -> InZ(n)
-  |ASTIf(e1,v1,v2) -> if(evalExpr e1 env = InZ(1) ) then  evalExpr v1 env else evalExpr v2 env
-  |ASTAnd(e1,e2) -> if(evalExpr e1 env = InZ(1)) then evalExpr e2 env else InZ(0)
-  |ASTOr (e1,e2) -> if(evalExpr e1 env = InZ(1)) then InZ(1) else evalExpr e2 env
+  |ASTIf(e1,v1,v2) -> if(evalExpr e1 env memoire = InZ(1) ) then  evalExpr v1 env memoire else evalExpr v2 env memoire
+  |ASTAnd(e1,e2) -> if(evalExpr e1 env memoire = InZ(1)) then evalExpr e2 env memoire else InZ(0)
+  |ASTOr (e1,e2) -> if(evalExpr e1 env memoire = InZ(1)) then InZ(1) else evalExpr e2 env memoire
   |ASTFerm (args , e1) -> InF( e1 , sorteArgs args ,env)
   |ASTApp (func , exprs) ->
     (match func with 
-      |ASTId ("not") -> if(evalExpr (getNlist 1 exprs) env = InZ(0)) then InZ(1) else InZ(0)
-      |ASTId ("eq") -> if ((evalExpr (getNlist 1 exprs) env) = (evalExpr (getNlist 2 exprs) env)) then InZ (1) else InZ(0)
-      |ASTId ("lt") -> if(valIntToInt (evalExpr (getNlist 1 exprs) env ) < valIntToInt(evalExpr (getNlist 2 exprs ) env)) then InZ(1) else InZ(0)
-      |ASTId ("add") -> InZ(valIntToInt (evalExpr (getNlist 1 exprs) env) + valIntToInt(evalExpr (getNlist 2 exprs ) env))
-      |ASTId ("sub") ->InZ(valIntToInt (evalExpr (getNlist 1 exprs) env) - valIntToInt(evalExpr (getNlist 2 exprs ) env))
-      |ASTId ("mul") ->InZ(valIntToInt (evalExpr (getNlist 1 exprs) env) * valIntToInt(evalExpr (getNlist 2 exprs )env))
-      |ASTId ("div") -> InZ(valIntToInt (evalExpr (getNlist 1 exprs) env) / valIntToInt(evalExpr (getNlist 2 exprs ) env))
+      |ASTId ("not") -> if(evalExpr (getNlist 1 exprs) env memoire = InZ(0)) then InZ(1) else InZ(0)
+      |ASTId ("eq") -> if ((evalExpr (getNlist 1 exprs) env memoire) = (evalExpr (getNlist 2 exprs) env memoire)) then InZ (1) else InZ(0)
+      |ASTId ("lt") -> if(valIntToInt (evalExpr (getNlist 1 exprs) env memoire) < valIntToInt(evalExpr (getNlist 2 exprs ) env memoire)) then InZ(1) else InZ(0)
+      |ASTId ("add") -> InZ(valIntToInt (evalExpr (getNlist 1 exprs) env memoire) + valIntToInt(evalExpr (getNlist 2 exprs ) env memoire))
+      |ASTId ("sub") ->InZ(valIntToInt (evalExpr (getNlist 1 exprs) env memoire) - valIntToInt(evalExpr (getNlist 2 exprs ) env memoire))
+      |ASTId ("mul") ->InZ(valIntToInt (evalExpr (getNlist 1 exprs) env memoire) * valIntToInt(evalExpr (getNlist 2 exprs )env memoire))
+      |ASTId ("div") -> InZ(valIntToInt (evalExpr (getNlist 1 exprs) env memoire) / valIntToInt(evalExpr (getNlist 2 exprs ) env memoire))
       |_ ->
-        (match (evalExpr func env) with
-          InF(eprime, argsfun, envF) ->  evalExpr eprime (ajouteArgsEnv argsfun exprs envF env)
+        (match (evalExpr func env memoire) with
+          InF(eprime, argsfun, envF) ->  evalExpr eprime (ajouteArgsEnv argsfun exprs envF env memoire) memoire
           |InFR(eprime,id ,argsfun, envF) -> evalExpr eprime ( (id,InFR(eprime,id ,argsfun, envF))
-                                            :: ajouteArgsEnv argsfun exprs envF env)
+                                            :: ajouteArgsEnv argsfun exprs envF env memoire) memoire
           |_ -> failwith "Fonction non définie"
         ) 
     )
@@ -94,25 +92,63 @@ let rec evalExpr exp env memoire =
   
         and
 
-  ajouteArgsEnv args exprs env envCours=
+  ajouteArgsEnv args exprs env envCours memoire=
     match (args, exprs) with
     | ([],[]) -> env
     | ([],_) -> failwith "Trop d'arguments"
     | (_,[]) -> failwith "Pas assez d'arguments"
-    | (a1::aq,e1::eq) -> let new_env = ajouteArgsEnv aq eq env envCours in
-                        (a1, evalExpr e1 envCours) :: List.remove_assoc a1 new_env
+    | (a1::aq,e1::eq) ->
+      match e1 with
+      |ASTId e -> let new_env = ajouteArgsEnv aq eq env envCours memoire in
+                        (a1, getAdresse e1 new_env  ) :: List.remove_assoc a1 new_env
+      | e1 -> let new_env = ajouteArgsEnv aq eq env envCours memoire in
+      (a1, evalExpr e1 envCours memoire) :: List.remove_assoc a1 new_env
+and
+getAdresse a1 e env = 
+  match e with
+  | ASTId s -> 
+      (try 
+         match List.assoc s env with 
+         |inA v -> inA v
+         | v -> 
+       with Not_found -> 
+         failwith ("Erreur : La variable '" ^ s ^ "' est introuvable dans l'environnement."))
+  | ASTNum 
+  | _ -> failwith "Erreur : Expression invalide pour getAdresse"
 
+
+ 
+    
 (* evaluation de chaque commande *)
 let rec evalInst inst env memoire sortie = 
   match inst with
-  ASTEcho(n) -> (env, memoire, sortie @ [evalExpr n env])
+  ASTEcho(n) -> (env, memoire, sortie @ [evalExpr n env memoire])
   |ASTSet(ASTId(s), e) -> let adresse = List.assoc s env in  
-    (env,  (adresse, evalExpr v env) :: List.remove_assoc s env  ,  sortie  )
-  |
-
-let rec evalCmd cmd env memoire sortie = 
+    (env,  (adresse, evalExpr e env memoire) :: List.remove_assoc adresse memoire  ,  sortie  )
+  |ASTIFB(e,b1,b2) -> if(evalExpr e env memoire = InZ(1) ) then  evalCmds b1 env memoire sortie else evalCmds b2 env memoire sortie
+  | ASTWhile(e, b) -> 
+    let rec boucle_while env memoire sortie =
+      print_string(string_of_val (evalExpr e env memoire));
+      if evalExpr e env memoire = InZ(1) then 
+        let (new_env, new_memoire, new_sortie) = evalCmds b env memoire sortie in  
+        boucle_while new_env new_memoire new_sortie 
+      else 
+        (env, memoire, sortie)
+    in
+    boucle_while env memoire sortie
+  |ASTCall(proc,exprs) -> 
+    (match (evalExpr proc env memoire) with
+      InP(block, argsproc, envP) -> 
+        let (new_env,new_memoire,new_sortie) =  evalCmds block (ajouteArgsEnv argsproc exprs envP env memoire) memoire sortie
+        in (env,new_memoire,new_sortie)
+      |InPR(block,id ,argsproc, envP) -> evalCmds block ( (id,InPR(block,id ,argsproc, envP))
+                                    :: ajouteArgsEnv argsproc exprs envP env memoire) memoire sortie
+      |_ -> failwith "procedure non définie"
+    ) 
+and  
+ evalCmd cmd env memoire sortie = 
   match cmd with
-  ASTConst (ASTId(s),_,v) -> ((s, evalExpr v env) :: List.remove_assoc s env , memoire, sortie)
+  ASTConst (ASTId(s),_,v) -> ((s, evalExpr v env memoire) :: List.remove_assoc s env , memoire, sortie)
   |ASTFun (ASTId(s),_,args,e) -> ((s, InF( e , sorteArgs args ,env)) :: List.remove_assoc s env, memoire, sortie) 
   |ASTFunRec (ASTId(s),_,args,e) -> ((s, InFR( e ,s, sorteArgs args ,env)) :: List.remove_assoc s env , memoire,  sortie)
   |ASTStat(e) -> evalInst e env memoire sortie
@@ -121,15 +157,17 @@ let rec evalCmd cmd env memoire sortie =
   |ASTProcRec (ASTId(s),args,bk) -> ((s, InPR(bk ,s, sorteArgs args ,env)) :: List.remove_assoc s env , memoire,  sortie)
   |_ -> failwith "Erreur dans la syntaxe"
 
+and
 (* evaluation de la suite de commandes *)
-let rec evalCmds cmds env sortie =
+evalCmds cmds env memoire sortie =
   match cmds with
-  | [] -> sortie
-  | cmd::q ->( match (evalCmd cmd env sortie) with
-      | (e, s) -> s @ (evalCmds q e sortie))
+  | [] -> (env, memoire, sortie)
+  | cmd::q -> 
+      let (new_env, new_memoire, new_sortie) = evalCmd cmd env memoire sortie in
+      evalCmds q new_env new_memoire new_sortie  
 
 (* evaluation du programme *)
-let rec evalProg prog = evalCmds prog [] []
+let rec evalProg prog = evalCmds prog [] [] []
 
 let rec afficheliste l = 
   match l with 
@@ -142,7 +180,8 @@ let ic = open_in fname in
   try
     let lexbuf = Lexing.from_channel ic in
     let p = Parser.prog Lexer.token lexbuf in
-      print_string ( afficheliste (evalProg p) );
+    let (_, _, sortie_finale) = evalProg p in
+      print_string (afficheliste sortie_finale);
       print_string ".\n"
   with Lexer.Eof ->
     exit 0

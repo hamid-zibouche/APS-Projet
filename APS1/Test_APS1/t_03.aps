@@ -1,8 +1,9 @@
 [
     VAR y int;
+    CONST x int 5;
     PROC printVal [v: int] [
         ECHO v;
-        SET y v
+        SET y x
     ];
     CALL printVal 10;
     ECHO y
