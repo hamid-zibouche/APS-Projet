@@ -150,12 +150,12 @@ let rec evalInst inst env memoire sortie =
       InP(block, argsproc, envP) -> 
         let (new_env_Proc,new_mem_Proc) = ajouteArgsEnv argsproc exprs envP env memoire 
         in let (new_env,new_memoire,new_sortie) = evalCmds block new_env_Proc new_mem_Proc sortie
-        in (new_env,new_memoire,new_sortie)
+        in (env,new_memoire,new_sortie)
       |InPR(block,id ,argsproc, envP) -> 
         let (new_env_Proc,new_mem_Proc) = ajouteArgsEnv argsproc exprs envP env memoire 
         in let (new_env,new_memoire,new_sortie) = evalCmds block ( (id,InPR(block,id ,argsproc, envP))
                                     :: new_env_Proc ) new_mem_Proc sortie
-      in (new_env,new_memoire,new_sortie)
+      in (env,new_memoire,new_sortie)
       |_ -> failwith "procedure non définie"
     ) 
 and  

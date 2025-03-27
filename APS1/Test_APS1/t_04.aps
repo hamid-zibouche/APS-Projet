@@ -2,7 +2,7 @@
     CONST w int 0;    
     VAR t int ;
     SET t 0;
-    PROC loop [w: int, y: int] [
+    PROC REC loop [w: int, y: int] [
     IF (eq w 0) [
       SET w 110;
       ECHO w

@@ -5,7 +5,9 @@
         SET i 0;
         WHILE (lt i 5) [
             SET x (add (f i x) x);
-            SET i (add i 1)
+            SET i (add i 1);
+            ECHO i;
+            ECHO x
         ]
     ];
     CONST nb int 6;
