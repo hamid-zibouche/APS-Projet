@@ -73,9 +73,10 @@ let rec evalExpr exp env memoire =
       |ASTId ("div") -> InZ(valIntToInt (evalExpr (getNlist 1 exprs) env memoire) / valIntToInt(evalExpr (getNlist 2 exprs ) env memoire))
       |_ ->
         (match (evalExpr func env memoire) with
-          InF(eprime, argsfun, envF) ->  evalExpr eprime (ajouteArgsEnv argsfun exprs envF env memoire) memoire
-          |InFR(eprime,id ,argsfun, envF) -> evalExpr eprime ( (id,InFR(eprime,id ,argsfun, envF))
-                                            :: ajouteArgsEnv argsfun exprs envF env memoire) memoire
+          InF(eprime, argsfun, envF) ->  let (new_env,new_mem) = ajouteArgsEnv argsfun exprs envF env memoire in
+                                          evalExpr eprime new_env new_mem
+          |InFR(eprime,id ,argsfun, envF) -> let (new_env,new_mem) = ajouteArgsEnv argsfun exprs envF env memoire in
+                                          evalExpr eprime ( (id,InFR(eprime,id ,argsfun, envF)) ::new_env ) new_mem
           |_ -> failwith "Fonction non définie"
         ) 
     )
@@ -90,9 +91,21 @@ let rec evalExpr exp env memoire =
           | v -> v  
       with Not_found -> failwith ("Variable " ^ e ^ " non trouvée dans l'environnement"))
   
-        and
+  and 
 
   ajouteArgsEnv args exprs env envCours memoire=
+    match (args, exprs) with
+    | ([],[]) -> (env,memoire)
+    | ([],_) -> failwith "Trop d'arguments"
+    | (_,[]) -> failwith "Pas assez d'arguments"
+    | (a1::aq,e1::eq) -> let (new_env,new_mem) = ajouteArgsEnv aq eq env envCours memoire in
+                         let adresse = InA(incrementer()) in 
+                        (((a1, adresse) :: List.remove_assoc a1 new_env), (adresse,evalExpr e1 envCours memoire)::List.remove_assoc adresse new_mem)
+
+ 
+(*         and *)
+
+ (*  ajouteArgsEnv args exprs env envCours memoire=
     match (args, exprs) with
     | ([],[]) -> env
     | ([],_) -> failwith "Trop d'arguments"
@@ -101,23 +114,20 @@ let rec evalExpr exp env memoire =
       match e1 with
       |ASTId e -> let new_env = ajouteArgsEnv aq eq env envCours memoire in
                         (a1, getAdresse e1 new_env  ) :: List.remove_assoc a1 new_env
+                      
       | e1 -> let new_env = ajouteArgsEnv aq eq env envCours memoire in
       (a1, evalExpr e1 envCours memoire) :: List.remove_assoc a1 new_env
 and
-getAdresse a1 e env = 
+getAdresse e env = 
   match e with
   | ASTId s -> 
       (try 
-         match List.assoc s env with 
-         |inA v -> inA v
-         | v -> 
+         List.assoc s env  (* Retourne directement la valeur associée *)
        with Not_found -> 
          failwith ("Erreur : La variable '" ^ s ^ "' est introuvable dans l'environnement."))
-  | ASTNum 
   | _ -> failwith "Erreur : Expression invalide pour getAdresse"
+ *)
 
-
- 
     
 (* evaluation de chaque commande *)
 let rec evalInst inst env memoire sortie = 
@@ -128,7 +138,6 @@ let rec evalInst inst env memoire sortie =
   |ASTIFB(e,b1,b2) -> if(evalExpr e env memoire = InZ(1) ) then  evalCmds b1 env memoire sortie else evalCmds b2 env memoire sortie
   | ASTWhile(e, b) -> 
     let rec boucle_while env memoire sortie =
-      print_string(string_of_val (evalExpr e env memoire));
       if evalExpr e env memoire = InZ(1) then 
         let (new_env, new_memoire, new_sortie) = evalCmds b env memoire sortie in  
         boucle_while new_env new_memoire new_sortie 
@@ -139,10 +148,14 @@ let rec evalInst inst env memoire sortie =
   |ASTCall(proc,exprs) -> 
     (match (evalExpr proc env memoire) with
       InP(block, argsproc, envP) -> 
-        let (new_env,new_memoire,new_sortie) =  evalCmds block (ajouteArgsEnv argsproc exprs envP env memoire) memoire sortie
-        in (env,new_memoire,new_sortie)
-      |InPR(block,id ,argsproc, envP) -> evalCmds block ( (id,InPR(block,id ,argsproc, envP))
-                                    :: ajouteArgsEnv argsproc exprs envP env memoire) memoire sortie
+        let (new_env_Proc,new_mem_Proc) = ajouteArgsEnv argsproc exprs envP env memoire 
+        in let (new_env,new_memoire,new_sortie) = evalCmds block new_env_Proc new_mem_Proc sortie
+        in (new_env,new_memoire,new_sortie)
+      |InPR(block,id ,argsproc, envP) -> 
+        let (new_env_Proc,new_mem_Proc) = ajouteArgsEnv argsproc exprs envP env memoire 
+        in let (new_env,new_memoire,new_sortie) = evalCmds block ( (id,InPR(block,id ,argsproc, envP))
+                                    :: new_env_Proc ) new_mem_Proc sortie
+      in (new_env,new_memoire,new_sortie)
       |_ -> failwith "procedure non définie"
     ) 
 and  

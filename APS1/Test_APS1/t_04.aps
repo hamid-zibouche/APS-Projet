@@ -1,20 +1,20 @@
 [
-    CONST w int 8;    
+    CONST w int 0;    
     VAR t int ;
-    SET t 10;
-    PROC loop [n: int, y: int] [
-    IF (eq n 0) [
-      SET n 110;
-      ECHO n
+    SET t 0;
+    PROC loop [w: int, y: int] [
+    IF (eq w 0) [
+      SET w 110;
+      ECHO w
      ] [
-      WHILE (not(lt y 5)) [
+      WHILE (not(lt y 1)) [
         SET y (sub y 1);
         ECHO y
       ]
      ]
     ];
+    SET t 20;
 
-    SET w 10;
-
-    CALL loop t w
+    CALL loop w t;
+    ECHO w
 ]
