@@ -51,6 +51,7 @@ let string_of_val = function
 | InZ n -> string_of_int n
 | InF (_, args, _) -> "<function> with args: " ^ String.concat ", " args
 | InFR (_, name, args, _) -> "<recursive function " ^ name ^ "> with args: " ^ String.concat ", " args
+| _ -> ""
 
 (* evaluation de chaque expression *)
 let rec evalExpr exp env memoire =
@@ -102,32 +103,6 @@ let rec evalExpr exp env memoire =
                          let adresse = InA(incrementer()) in 
                         (((a1, adresse) :: List.remove_assoc a1 new_env), (adresse,evalExpr e1 envCours memoire)::List.remove_assoc adresse new_mem)
 
- 
-(*         and *)
-
- (*  ajouteArgsEnv args exprs env envCours memoire=
-    match (args, exprs) with
-    | ([],[]) -> env
-    | ([],_) -> failwith "Trop d'arguments"
-    | (_,[]) -> failwith "Pas assez d'arguments"
-    | (a1::aq,e1::eq) ->
-      match e1 with
-      |ASTId e -> let new_env = ajouteArgsEnv aq eq env envCours memoire in
-                        (a1, getAdresse e1 new_env  ) :: List.remove_assoc a1 new_env
-                      
-      | e1 -> let new_env = ajouteArgsEnv aq eq env envCours memoire in
-      (a1, evalExpr e1 envCours memoire) :: List.remove_assoc a1 new_env
-and
-getAdresse e env = 
-  match e with
-  | ASTId s -> 
-      (try 
-         List.assoc s env  (* Retourne directement la valeur associée *)
-       with Not_found -> 
-         failwith ("Erreur : La variable '" ^ s ^ "' est introuvable dans l'environnement."))
-  | _ -> failwith "Erreur : Expression invalide pour getAdresse"
- *)
-
     
 (* evaluation de chaque commande *)
 let rec evalInst inst env memoire sortie = 
@@ -158,6 +133,8 @@ let rec evalInst inst env memoire sortie =
       in (env,new_memoire,new_sortie)
       |_ -> failwith "procedure non définie"
     ) 
+  |_ -> failwith "Erreur dans la syntaxe"
+  
 and  
  evalCmd cmd env memoire sortie = 
   match cmd with
