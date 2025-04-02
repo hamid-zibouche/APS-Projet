@@ -1,0 +1,8 @@
+[
+    VAR y int;
+    PROC printVal [var v: int] [
+        SET v 1;
+        ECHO v
+    ];
+    CALL printVal (adr y)
+]

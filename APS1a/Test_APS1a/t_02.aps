@@ -1,0 +1,27 @@
+[
+  CONST x int 42;
+  FUN add int [a: int, b: int]  (add a b);
+  FUN REC fact int [n: int]  (if n n 1);
+  VAR y int;
+  PROC printVal [v: int] [
+    ECHO v;
+    SET y v
+  ];
+  PROC REC loop [n: int] [
+    IF n [
+      ECHO n
+     ] [
+      WHILE n [
+        CALL printVal n;
+        CALL loop n
+      ]
+     ]
+    ];
+  CONST lambdaTest int  [z: int]  (if z z 0);
+  ECHO (add 10 20);
+  SET y 0;
+  WHILE 1 [
+    ECHO y
+  ];
+  CALL printVal 100
+]

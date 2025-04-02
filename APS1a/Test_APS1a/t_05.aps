@@ -1,0 +1,16 @@
+[
+    PROC set [f:(int*int->int),var x:int]
+    [
+        VAR i int;
+        SET i 0;
+        WHILE (lt i 5) [
+            SET x (add (f i x) x);
+            SET i (add i 1);
+            ECHO i;
+            ECHO x
+        ]
+    ];
+    VAR nb int;
+    SET nb 6;
+    CALL set [x:int,y:int] (add x y) (adr nb) 
+]
