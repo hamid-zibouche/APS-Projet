@@ -37,6 +37,13 @@ let rec sorteArgs args =
   | []->[]
   | ASTArg(id,_)::q -> id :: sorteArgs q 
 
+(*  *)
+let rec sorteArgsP argsP = 
+  match argsP with
+  | []->[]
+  | ASTArgp(id,_)::q -> id :: sorteArgsP q 
+  |ASTVargp(id,_)::q -> id :: sorteArgsP q
+
 let rec getNlist i list =
   match list with
   [] -> failwith "la liste n'est pas assez grande"
@@ -74,9 +81,9 @@ let rec evalExpr exp env memoire =
       |ASTId ("div") -> InZ(valIntToInt (evalExpr (getNlist 1 exprs) env memoire) / valIntToInt(evalExpr (getNlist 2 exprs ) env memoire))
       |_ ->
         (match (evalExpr func env memoire) with
-          InF(eprime, argsfun, envF) ->  let (new_env,new_mem) = ajouteArgsEnv argsfun exprs envF env memoire in
+          InF(eprime, argsfun, envF) ->  let (new_env,new_mem) = ajouteArgsEnvFun argsfun exprs envF env memoire in
                                           evalExpr eprime new_env new_mem
-          |InFR(eprime,id ,argsfun, envF) -> let (new_env,new_mem) = ajouteArgsEnv argsfun exprs envF env memoire in
+          |InFR(eprime,id ,argsfun, envF) -> let (new_env,new_mem) = ajouteArgsEnvFun argsfun exprs envF env memoire in
                                           evalExpr eprime ( (id,InFR(eprime,id ,argsfun, envF)) ::new_env ) new_mem
           |_ -> failwith "Fonction non définie"
         ) 
@@ -92,18 +99,34 @@ let rec evalExpr exp env memoire =
           | v -> v  
       with Not_found -> failwith ("Variable " ^ e ^ " non trouvée dans l'environnement"))
   
+  and
+
+  evalExpar exp env memoire = 
+   match exp with 
+   |ASTExpr(e) -> evalExpr e env memoire
+   |ASTAdr (ident) ->(try
+     List.assoc ident env
+    with Not_found -> failwith ("Variable adr " ^ ident ^ " non trouvée dans l'environnement"))
+
   and 
 
-  ajouteArgsEnv args exprs env envCours memoire=
+  ajouteArgsEnvFun args exprs env envCours memoire=
     match (args, exprs) with
     | ([],[]) -> (env,memoire)
     | ([],_) -> failwith "Trop d'arguments"
     | (_,[]) -> failwith "Pas assez d'arguments"
-    | (a1::aq,e1::eq) -> let (new_env,new_mem) = ajouteArgsEnv aq eq env envCours memoire in
-                         let adresse = InA(incrementer()) in 
-                        (((a1, adresse) :: List.remove_assoc a1 new_env), (adresse,evalExpr e1 envCours memoire)::List.remove_assoc adresse new_mem)
+    | (a1::aq,e1::eq) -> let (new_env,new_mem) = ajouteArgsEnvFun aq eq env envCours memoire in
+                        (((a1, evalExpr e1 envCours memoire ) :: List.remove_assoc a1 new_env), new_mem)
+  and 
 
-    
+  ajouteArgsEnvProc args exprs env envCours memoire=
+    match (args, exprs) with
+    | ([],[]) -> (env,memoire)
+    | ([],_) -> failwith "Trop d'arguments"
+    | (_,[]) -> failwith "Pas assez d'arguments"
+    | (a1::aq,e1::eq) -> let (new_env,new_mem) = ajouteArgsEnvProc aq eq env envCours memoire in
+                        (((a1, evalExpar e1 envCours memoire ) :: List.remove_assoc a1 new_env), new_mem)
+
 (* evaluation de chaque commande *)
 let rec evalInst inst env memoire sortie = 
   match inst with
@@ -123,11 +146,11 @@ let rec evalInst inst env memoire sortie =
   |ASTCall(proc,exprs) -> 
     (match (evalExpr proc env memoire) with
       InP(block, argsproc, envP) -> 
-        let (new_env_Proc,new_mem_Proc) = ajouteArgsEnv argsproc exprs envP env memoire 
+        let (new_env_Proc,new_mem_Proc) = ajouteArgsEnvProc argsproc exprs envP env memoire 
         in let (new_env,new_memoire,new_sortie) = evalCmds block new_env_Proc new_mem_Proc sortie
         in (env,new_memoire,new_sortie)
       |InPR(block,id ,argsproc, envP) -> 
-        let (new_env_Proc,new_mem_Proc) = ajouteArgsEnv argsproc exprs envP env memoire 
+        let (new_env_Proc,new_mem_Proc) = ajouteArgsEnvProc argsproc exprs envP env memoire 
         in let (new_env,new_memoire,new_sortie) = evalCmds block ( (id,InPR(block,id ,argsproc, envP))
                                     :: new_env_Proc ) new_mem_Proc sortie
       in (env,new_memoire,new_sortie)
@@ -143,8 +166,8 @@ and
   |ASTFunRec (ASTId(s),_,args,e) -> ((s, InFR( e ,s, sorteArgs args ,env)) :: List.remove_assoc s env , memoire,  sortie)
   |ASTStat(e) -> evalInst e env memoire sortie
   |ASTVar(ASTId(s),_) -> ( (s, InA (incrementer ())) :: List.remove_assoc s env , memoire, sortie)
-  |ASTProc (ASTId(s),args,bk) -> ((s, InP( bk , sorteArgs args ,env)) :: List.remove_assoc s env, memoire, sortie)
-  |ASTProcRec (ASTId(s),args,bk) -> ((s, InPR(bk ,s, sorteArgs args ,env)) :: List.remove_assoc s env , memoire,  sortie)
+  |ASTProc (ASTId(s),args,bk) -> ((s, InP( bk , sorteArgsP args ,env)) :: List.remove_assoc s env, memoire, sortie)
+  |ASTProcRec (ASTId(s),args,bk) -> ((s, InPR(bk ,s, sorteArgsP args ,env)) :: List.remove_assoc s env , memoire,  sortie)
   |_ -> failwith "Erreur dans la syntaxe"
 
 and

@@ -49,9 +49,3 @@ cmd =
   | ASTVar of expr * typee
   | ASTProc of expr * argp list * cmd list
   | ASTProcRec of expr * argp list * cmd list
-
-
-
-
-
-	

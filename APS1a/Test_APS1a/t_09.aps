@@ -1,0 +1,17 @@
+[
+    VAR w bool;   
+    VAR t int;
+    PROC REC loop [var w: bool, y: int] [
+    IF w [
+      SET w false;
+      ECHO 1
+     ] [
+      ECHO 0
+     ]
+    ];
+    SET t 20;
+    SET w true;
+
+    CALL loop (adr w) 20;
+    CALL loop (adr w) 20
+]
