@@ -1,0 +1,4 @@
+[
+    FUN REC si int [x:int] (if (eq x 0) 0 (add x (si (sub x 1))));
+    ECHO (si 3)
+]
