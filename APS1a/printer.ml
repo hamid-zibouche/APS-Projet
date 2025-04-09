@@ -16,8 +16,10 @@ let string_of_args args =
   String.concat ", " (List.map string_of_arg args)
 
 (* Impression des arguments procéduraux *)
-let string_of_argp (ASTArgp (name, typee)) =
-  name ^ ": " ^ string_of_typee typee
+let string_of_argp arg = 
+  match arg with
+  | (ASTArgp (name, typee)) -> name ^ ": " ^ string_of_typee typee
+  | (ASTVargp (name, typee)) -> "var "^ name ^ ": " ^ string_of_typee typee
 
 let string_of_argsp args =
   String.concat ", " (List.map string_of_argp args)
