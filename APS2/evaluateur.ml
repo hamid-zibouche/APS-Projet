@@ -15,6 +15,7 @@ type fType = InF of expr * (string list) * env and
   | InF of expr * (string list) * env  
   | InFR of expr * string * (string list) * env
   | InA of int
+  | InB of valType * int 
   | InP of (cmd list) * (string list) * env
   | InPR of (cmd list) * string * (string list) * env and
 
@@ -60,30 +61,36 @@ let string_of_val = function
 | InFR (_, name, args, _) -> "<recursive function " ^ name ^ "> with args: " ^ String.concat ", " args
 | _ -> ""
 
+let allocn n = let prem =  InA (incrementer ()) in 
+ let rec aux n =
+      if (n) > 0 then incrementer(); aux (n-1)
+      in aux (n-1) ; 
+        prem
+
 (* evaluation de chaque expression *)
 let rec evalExpr exp env memoire =
   match exp with
-  |ASTId ("true") -> InZ(1)
-  |ASTId("false") -> InZ(0)
-  |ASTNum(n) -> InZ(n)
-  |ASTIf(e1,v1,v2) -> if(evalExpr e1 env memoire = InZ(1) ) then  evalExpr v1 env memoire else evalExpr v2 env memoire
-  |ASTAnd(e1,e2) -> if(evalExpr e1 env memoire = InZ(1)) then evalExpr e2 env memoire else InZ(0)
-  |ASTOr (e1,e2) -> if(evalExpr e1 env memoire = InZ(1)) then InZ(1) else evalExpr e2 env memoire
-  |ASTFerm (args , e1) -> InF( e1 , sorteArgs args ,env)
+  |ASTId ("true") -> (InZ(1),memoire)
+  |ASTId("false") -> (InZ(0),memoire)
+  |ASTNum(n) -> (InZ(n),memoire)
+  |ASTIf(e1,v1,v2) -> if(evalExpr e1 env memoire = (InZ(1),memoire2) ) then  evalExpr v1 env memoire2 else evalExpr v2 env memoire2
+  |ASTAnd(e1,e2) -> if(evalExpr e1 env memoire = (InZ(1),memoire2)) then evalExpr e2 env memoire2 else (InZ(0),memoire2)
+  |ASTOr (e1,e2) -> if(evalExpr e1 env memoire = (InZ(1),memoire2)) then (InZ(1),memoire2) else evalExpr e2 env memoire2
+  |ASTFerm (args , e1) -> (InF( e1 , sorteArgs args ,env),memoire)
   |ASTApp (func , exprs) ->
     (match func with 
-      |ASTId ("not") -> if(evalExpr (getNlist 1 exprs) env memoire = InZ(0)) then InZ(1) else InZ(0)
-      |ASTId ("eq") -> if ((evalExpr (getNlist 1 exprs) env memoire) = (evalExpr (getNlist 2 exprs) env memoire)) then InZ (1) else InZ(0)
-      |ASTId ("lt") -> if(valIntToInt (evalExpr (getNlist 1 exprs) env memoire) < valIntToInt(evalExpr (getNlist 2 exprs ) env memoire)) then InZ(1) else InZ(0)
-      |ASTId ("add") -> InZ(valIntToInt (evalExpr (getNlist 1 exprs) env memoire) + valIntToInt(evalExpr (getNlist 2 exprs ) env memoire))
-      |ASTId ("sub") ->InZ(valIntToInt (evalExpr (getNlist 1 exprs) env memoire) - valIntToInt(evalExpr (getNlist 2 exprs ) env memoire))
-      |ASTId ("mul") ->InZ(valIntToInt (evalExpr (getNlist 1 exprs) env memoire) * valIntToInt(evalExpr (getNlist 2 exprs )env memoire))
-      |ASTId ("div") -> InZ(valIntToInt (evalExpr (getNlist 1 exprs) env memoire) / valIntToInt(evalExpr (getNlist 2 exprs ) env memoire))
-      |_ ->
-        (match (evalExpr func env memoire) with
-          InF(eprime, argsfun, envF) ->  let (new_env,new_mem) = ajouteArgsEnvFun argsfun exprs envF env memoire in
+      |ASTId ("not") -> if(evalExpr (getNlist 1 exprs) env memoire = (InZ(0),memoire2)) then (InZ(1),memoire2) else (InZ(0),memoire2)
+      |ASTId ("eq") -> if ((evalExpr (getNlist 1 exprs) env memoire) = (evalExpr (getNlist 2 exprs) env memoire)) then (InZ (1),memoire) else (InZ(0),memoire)
+      |ASTId ("lt") -> if(valIntToInt (evalExpr (getNlist 1 exprs) env memoire) < valIntToInt(evalExpr (getNlist 2 exprs ) env memoire)) then (InZ (1),memoire) else (InZ(0),memoire)
+      |ASTId ("add") -> (InZ(valIntToInt (evalExpr (getNlist 1 exprs) env memoire) + valIntToInt(evalExpr (getNlist 2 exprs ) env memoire)),memoire)
+      |ASTId ("sub") ->(InZ(valIntToInt (evalExpr (getNlist 1 exprs) env memoire) - valIntToInt(evalExpr (getNlist 2 exprs ) env memoire)),memoire)
+      |ASTId ("mul") ->(InZ(valIntToInt (evalExpr (getNlist 1 exprs) env memoire) * valIntToInt(evalExpr (getNlist 2 exprs )env memoire)),memoire)
+      |ASTId ("div") -> (InZ(valIntToInt (evalExpr (getNlist 1 exprs) env memoire) / valIntToInt(evalExpr (getNlist 2 exprs ) env memoire)),memoire)
+      |_ -> let (e,mem) = evalExpr func env memoire in
+        (match (e) with
+          InF(eprime, argsfun, envF) ->  let (new_env,new_mem) = ajouteArgsEnvFun argsfun exprs envF env mem in
                                           evalExpr eprime new_env new_mem
-          |InFR(eprime,id ,argsfun, envF) -> let (new_env,new_mem) = ajouteArgsEnvFun argsfun exprs envF env memoire in
+          |InFR(eprime,id ,argsfun, envF) -> let (new_env,new_mem) = ajouteArgsEnvFun argsfun exprs envF env mem in
                                           evalExpr eprime ( (id,InFR(eprime,id ,argsfun, envF)) ::new_env ) new_mem
           |_ -> failwith "Fonction non définie"
         ) 
@@ -94,10 +101,27 @@ let rec evalExpr exp env memoire =
           match valeur with
           | InA a -> 
               (try 
-                  List.assoc (InA a) memoire
+                  (List.assoc (InA a) memoire,memoire)
               with Not_found -> failwith ("Adresse " ^ string_of_int a ^ " non trouvée en mémoire"))
-          | v -> v  
+          | v -> (v,memoire)  
       with Not_found -> failwith ("Variable " ^ e ^ " non trouvée dans l'environnement"))
+  | ASTAlloc e -> let (InZ(taille),mem) = evalExpr e env memoire in 
+                  (InB((allocn taille),taille), mem)
+
+  | ASTVset (e1,e2,e3) -> let (InB(InA(a),n),mem1) = evalExpr e1 env memoire in 
+                          let (InZ(i),mem2) = evalExpr e2 env mem1 in
+                          let (v , mem3) = evalExpr e3 env mem2 in
+                          let mem = 
+                            if (a+i) > n then failwith("erreur taille tableau non suffisante")
+                            else (InA(a+i), v) :: List.remove_assoc InA(a+i) mem3
+                          in (InB(InA(a),n),mem )
+
+  | ASTNth (e1,e2) ->  let (InB(InA(a),n),mem1) = evalExpr e1 env memoire in 
+                       let (InZ(i),mem2) = evalExpr e2 env mem1 in
+                       if (a+i) > n then failwith("erreur taille tableau non suffisante")
+                       else (InA(a+i), mem2)
+
+  | ASTLen (e) -> let (InB(InA(a),n),mem1) = evalExpr e1 env memoire in (InZ(n),mem1)
   
   and
 
@@ -161,7 +185,7 @@ let rec evalInst inst env memoire sortie =
 and  
  evalCmd cmd env memoire sortie = 
   match cmd with
-  ASTConst (ASTId(s),_,v) -> ((s, evalExpr v env memoire) :: List.remove_assoc s env , memoire, sortie)
+  ASTConst (ASTId(s),_,v) -> let (e,mem) = evalExpr v env memoire in ((s, e) :: List.remove_assoc s env , mem, sortie)
   |ASTFun (ASTId(s),_,args,e) -> ((s, InF( e , sorteArgs args ,env)) :: List.remove_assoc s env, memoire, sortie) 
   |ASTFunRec (ASTId(s),_,args,e) -> ((s, InFR( e ,s, sorteArgs args ,env)) :: List.remove_assoc s env , memoire,  sortie)
   |ASTStat(e) -> evalInst e env memoire sortie
