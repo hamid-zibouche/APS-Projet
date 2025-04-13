@@ -47,7 +47,7 @@ let rec print_expr e =
             Printf.printf(")")
     | ASTAlloc(e) -> Printf.printf "alloc("; print_expr e ; Printf.printf ")"
     | ASTLen (e) -> Printf.printf "len("; print_expr e ; Printf.printf ")"
-    | ASTNth (e1, e2) -> Printf.printf "nth("; print_expr e1; Printf.printf ","; print_expr e2 ; Printf.printf ")"
+    | ASTNthExpr (e1, e2) -> Printf.printf "nth("; print_expr e1; Printf.printf ","; print_expr e2 ; Printf.printf ")"
     | ASTVset (e1, e2, e3) -> Printf.printf "vset("; print_expr e1; Printf.printf ","; print_expr e2; Printf.printf ","; print_expr e3 ; Printf.printf ")"
   
 and print_exprs es =
@@ -62,8 +62,8 @@ and print_exprs es =
 
 let rec print_lval v = 
   match v with
-  | ASTId x -> Printf.printf"id(\"%s\")" x
-  | ASTNth (value,s) -> Printf.printf("nth("); print_lval(value); Printf.printf(","); print_expr(s); Printf.printf(")") 
+  | ASTIdLval x -> Printf.printf"id(\"%s\")" x
+  | ASTNthLval (value,s) -> Printf.printf("nth("); print_lval(value); Printf.printf(","); print_expr(s); Printf.printf(")") 
 
 
 let rec print_exprp e =

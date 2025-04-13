@@ -101,8 +101,8 @@ stat:
 ;
 
 lval:
-  IDENT                      {ASTId $1}
-  | LPAR NTH lval expr RPAR   {ASTNth ($3, $4)}
+  IDENT                      {ASTIdLval $1}
+  | LPAR NTH lval expr RPAR   {ASTNthLval ($3, $4)}
 
 exprsp :
   exprp       { [$1] }
@@ -123,7 +123,7 @@ expr:
 | LBRA args RBRA expr          { ASTFerm($2, $4) }
 | LPAR ALLOC expr RPAR         { ASTAlloc $3 }
 | LPAR LEN expr RPAR           { ASTLen $3 }
-| LPAR NTH expr expr RPAR      { ASTNth ($3,$4) }
+| LPAR NTH expr expr RPAR      { ASTNthExpr ($3,$4) }
 | LPAR VSET expr expr expr RPAR { ASTVset ($3, $4, $5) }
 ;
 

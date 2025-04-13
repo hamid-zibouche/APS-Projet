@@ -5,7 +5,8 @@
         SET i 0;
         WHILE (lt i (len xs)) [
             SET (nth xs i) (f (nth xs i));
-            SET i (add i 1)
+            SET i (add i 1);
+            ECHO (nth xs (sub i 1))
         ]
     ];
     CONST tab (vec int) (alloc 2);

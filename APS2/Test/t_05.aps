@@ -1,0 +1,21 @@
+[
+    VAR w int;   
+    VAR t int;
+    PROC REC loop [var w: int, var y: int] [
+    IF (eq w 0) [
+      SET w 110;
+      ECHO w
+     ] [
+      WHILE (not(lt y 1)) [
+        SET y (sub y 1);
+        ECHO y;
+        ECHO t
+      ]
+     ]
+    ];
+    SET t 20;
+    SET w 1;
+
+    CALL loop (adr w) (adr t);
+    ECHO t
+]

@@ -25,22 +25,22 @@ type expr =
     ASTNum of int
   | ASTId of string
   | ASTIf of expr * expr * expr
-  | ASTAnd of expr * expr 
+  | ASTAnd of expr * expr
   | ASTOr of expr * expr
   | ASTApp of expr * expr list
   | ASTFerm of arg list * expr
   | ASTAlloc of expr
   | ASTLen of expr
-  | ASTNth of expr * expr
+  | ASTNthExpr of expr * expr
   | ASTVset of expr * expr * expr
+
+type lval =
+    ASTIdLval of string
+    | ASTNthLval of lval * expr
 
 type exprp =
     | ASTExpr of expr
     | ASTAdr of string
-
-type lval =
-    ASTId of string
-    | ASTNth of lval * expr
 
 type stat =
     ASTEcho of expr
