@@ -64,7 +64,7 @@ let string_of_val = function
 let allocn n = 
   let prem = InA (incrementer ()) in 
   let rec aux n =
-    if n > 0 then (incrementer (); aux (n - 1))
+    if n > 0 then (ignore (incrementer ()); aux (n - 1))
     else ()
   in 
   aux (n - 1); 
@@ -134,8 +134,9 @@ let rec evalExpr exp env memoire =
               with Not_found -> failwith ("Adresse " ^ string_of_int a ^ " non trouvée en mémoire"))
           | v -> (v,memoire)  
       with Not_found -> failwith ("Variable " ^ e ^ " non trouvée dans l'environnement"))
-  | ASTAlloc e -> let (InZ(taille),mem) = evalExpr e env memoire in 
-                  (InB((allocn taille),taille), mem)
+  | ASTAlloc e -> (match (evalExpr e env memoire) with
+                  | (InZ(taille),mem) -> (InB((allocn taille),taille), mem)
+                  | _ -> failwith "Erreur: types inattendus pour ASTAlloc")
 
   | ASTVset (e1, e2, e3) -> 
       let (v1, mem1) = evalExpr e1 env memoire in
@@ -163,7 +164,10 @@ let rec evalExpr exp env memoire =
             with Not_found -> failwith ("Adresse " ^ string_of_int (a + i) ^ " non trouvée en mémoire"))
       | _ -> failwith "Erreur: types inattendus pour ASTNthExpr")
 
-  | ASTLen (e) -> let (InB(InA(a),n),mem1) = evalExpr e env memoire in (InZ(n),mem1)
+  | ASTLen (e) -> (match (evalExpr e env memoire) with
+                  | (InB(InA(a),n),mem1) ->  (InZ(n),mem1)
+                  | _ -> failwith "Erreur: types inattendus pour ASTLen")
+  
   
   and
 
@@ -213,15 +217,14 @@ let rec evalLval lval env memoire =
           else 
             (InA(a + i), mem2)
       | (InA(a),InZ(i)) -> 
-        let (InB(InA(a2),n)) = List.assoc (InA(a)) mem2 in
-
-        if i < 0 || i >= n then 
-        failwith "Erreur: indice hors limites du tableau"
-        else 
-        (InA(a2 + i), mem2)
-
+        (match (List.assoc (InA(a)) mem2) with
+        | (InB(InA(a2),n)) -> if i < 0 || i >= n then 
+          failwith "Erreur: indice hors limites du tableau"
+          else 
+          (InA(a2 + i), mem2)
+        | _ -> failwith "Erreur: types inattendus pour ASTNthLval"
+        )        
       | _ -> failwith "Erreur: types inattendus pour ASTNthLval")
-  |_ -> failwith "Erreur dans EvalLval"
                         
 (* evaluation de chaque commande *)
 let rec evalInst inst env memoire sortie = 
