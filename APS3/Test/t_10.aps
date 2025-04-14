@@ -1,0 +1,10 @@
+[
+    FUN REC si int [x:int] 
+      [ IF (eq x 3)
+
+        [RETURN 1]
+        [RETURN 0]
+      ];
+    ECHO (si 3)
+]
+
