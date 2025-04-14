@@ -81,6 +81,8 @@ and print_exprsp es =
     print_exprsp es
         )
 
+let print_ret (ASTReturn e) = (Printf.printf("return("); print_expr(e); Printf.printf(")"))
+
 let rec print_stat s =
   match s with
     ASTEcho e -> (Printf.printf("echo("); print_expr(e); Printf.printf(")"))
@@ -130,6 +132,21 @@ and
                           Printf.printf(",");
                           print_cmds cmds ; 
                           Printf.printf(")");
+    | ASTFunCMD (ident,t,args,cmds) ->  Printf.printf("funCmd(");
+                          print_expr(ident);
+                          Printf.printf(",%s") (print_typee t); 
+                          Printf.printf(",%s") (print_args args);
+                          Printf.printf(",");
+                          print_cmds cmds ; 
+                          Printf.printf(")");
+    | ASTFunRecCMD (ident,t,args,cmds) ->  Printf.printf("funRecCmd(");
+                          print_expr(ident);
+                          Printf.printf(",%s") (print_typee t); 
+                          Printf.printf(",%s") (print_args args);
+                          Printf.printf(",");
+                          print_cmds cmds ; 
+                          Printf.printf(")");
+    | ASTRet r -> print_ret r
     
 and
 
