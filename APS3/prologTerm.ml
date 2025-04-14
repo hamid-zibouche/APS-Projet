@@ -81,7 +81,7 @@ and print_exprsp es =
     print_exprsp es
         )
 
-let print_ret (ASTReturn e) = (Printf.printf("return("); print_expr(e); Printf.printf(")"))
+let print_ret (ASTReturn e) = (Printf.printf("ret("); print_expr(e); Printf.printf(")"))
 
 let rec print_stat s =
   match s with
