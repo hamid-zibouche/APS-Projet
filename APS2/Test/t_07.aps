@@ -1,0 +1,13 @@
+[
+    CONST tab (vec (vec int)) (alloc 100);
+
+    SET (nth tab 0) (alloc 100);
+
+    SET (nth (nth tab 0) 0) 69;
+
+
+
+    ECHO (nth (nth tab 0) 0)
+
+
+]

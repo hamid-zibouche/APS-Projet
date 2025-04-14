@@ -67,7 +67,7 @@ bt_expr(G,app(F,A),T) :- parcoursArg(G,A,L2), bt_expr(G,F,fun_t(L2,T)).
 bt_expr(G,ferm(A,E),fun_t(TA,T)) :- parcoursArgFun(A,TA), ajoutRec(G,A,G1), bt_expr(G1,E,T).
 bt_expr(G,alloc(E),vec_t(_)) :- bt_expr(G, E, int_t).
 bt_expr(G,len(E),int_t)  :- bt_expr(G, E, vec_t(_)).
-bt_expr(G,nth(E1,E2),T) :- bt_expr(G,E1,vec_t(T)), bt_expr(G,E2,T).
+bt_expr(G,nth(E1,E2),T) :- bt_expr(G,E1,vec_t(T)), bt_expr(G,E2,int_t).
 bt_expr(G,vset(E1,E2,E3),vec_t(T)) :- bt_expr(G,E1,vec_t(T)), bt_expr(G,E2,int_t), bt_expr(G,E3,T). 
 
 ajoutRec(G, [], G).

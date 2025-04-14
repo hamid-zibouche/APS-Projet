@@ -8,9 +8,8 @@
       ECHO (nth tab idx);
       SET idx (add idx 1);
       CALL writeAndEcho (adr idx)
-    ] 
-    [
-        ECHO -1
+    ] [
+      ECHO -1
     ]
   ];
 

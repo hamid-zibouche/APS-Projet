@@ -1,21 +1,23 @@
 [
-    VAR w int;   
-    VAR t int;
-    PROC REC loop [var w: int, var y: int] [
-    IF (eq w 0) [
-      SET w 110;
-      ECHO w
-     ] [
-      WHILE (not(lt y 1)) [
-        SET y (sub y 1);
-        ECHO y;
-        ECHO t
-      ]
-     ]
-    ];
-    SET t 20;
-    SET w 1;
+  CONST tab (vec int) (alloc 5);
+  VAR i int;
 
-    CALL loop (adr w) (adr t);
-    ECHO t
+  PROC REC fill [var i: int] [
+    IF (lt i 5) [
+      SET (nth tab i) (mul i 10);
+      SET i (add i 1);
+      CALL fill (adr i)
+    ] [
+      ECHO -1
+    ]
+  ];
+
+  SET i 0;
+  CALL fill (adr i);
+
+  ECHO (nth tab 0);
+  ECHO (nth tab 1);
+  ECHO (nth tab 2);
+  ECHO (nth tab 3);
+  ECHO (nth tab 4)
 ]

@@ -212,6 +212,14 @@ let rec evalLval lval env memoire =
             failwith "Erreur: indice hors limites du tableau"
           else 
             (InA(a + i), mem2)
+      | (InA(a),InZ(i)) -> 
+        let (InB(InA(a2),n)) = List.assoc (InA(a)) mem2 in
+
+        if i < 0 || i >= n then 
+        failwith "Erreur: indice hors limites du tableau"
+        else 
+        (InA(a2 + i), mem2)
+
       | _ -> failwith "Erreur: types inattendus pour ASTNthLval")
   |_ -> failwith "Erreur dans EvalLval"
                         
@@ -222,11 +230,11 @@ let rec evalInst inst env memoire sortie =
     let (v, _) = evalExpr n env memoire in 
     (match v with
     | InZ(n) -> (env, memoire, sortie @ [InZ(n)])
-    | InA(a) -> 
+(*     | InA(a) -> 
         (try 
           let InZ(n) = List.assoc (InA(a)) memoire in 
           (env, memoire, sortie @ [InZ(n)])
-        with Not_found -> failwith ("Adresse " ^ string_of_int a ^ " non trouvée en mémoire"))
+        with Not_found -> failwith ("Adresse " ^ string_of_int a ^ " non trouvée en mémoire")) *)
     | _ -> failwith "Erreur dans ASTEcho";)
   |ASTSet(ASTId(s), e) -> 
       let adresse = List.assoc s env in  
