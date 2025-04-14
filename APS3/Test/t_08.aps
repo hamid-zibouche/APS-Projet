@@ -1,0 +1,18 @@
+[
+  CONST tab (vec int) (alloc 5);
+  VAR idx int;
+
+  PROC REC writeAndEcho [var idx: int] [
+    IF (lt idx 5) [
+      SET (nth tab idx) (mul idx 2);
+      ECHO (nth tab idx);
+      SET idx (add idx 1);
+      CALL writeAndEcho (adr idx)
+    ] [
+      ECHO -1
+    ]
+  ];
+
+  SET idx 0;
+  CALL writeAndEcho (adr idx)
+]

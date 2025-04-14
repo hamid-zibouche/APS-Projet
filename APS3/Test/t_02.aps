@@ -1,0 +1,24 @@
+[
+    CONST tab (vec int) (alloc 100);
+    CONST tab2 (vec int) (alloc 5);
+    CONST a int 8;
+    VAR v bool;
+    SET v true;
+    
+    SET (nth tab 0) 12;
+    SET (nth tab 1) -34;
+    SET (nth tab 2) a;
+ 
+    SET (nth tab 99) (nth tab 0);
+
+    SET (nth tab2 0) 10;
+   
+    ECHO (len tab);
+    ECHO (nth tab 0);
+    ECHO (nth tab2 0);
+    ECHO (nth tab 1);
+    ECHO (nth tab 2);
+
+    ECHO (nth tab 99)
+
+]

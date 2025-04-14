@@ -1,0 +1,18 @@
+[
+  CONST matrice (vec (vec int)) (alloc 2);
+  CONST ligne0 (vec int) (alloc 3);
+  CONST ligne1 (vec int) (alloc 3);
+
+  SET (nth matrice 0) ligne0;
+  SET (nth matrice 1) ligne1;
+
+  SET (nth (nth matrice 0) 0) 1;
+  SET (nth (nth matrice 0) 1) 2;
+  SET (nth (nth matrice 1) 0) 3;
+  SET (nth (nth matrice 1) 1) 4;
+
+  ECHO (nth (nth matrice 0) 0);
+  ECHO (nth (nth matrice 0) 1);
+  ECHO (nth (nth matrice 1) 0);
+  ECHO (nth (nth matrice 1) 1)
+]
