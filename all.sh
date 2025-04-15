@@ -6,7 +6,7 @@ TIMEOUT_DURATION=3
 clean_all() {
     echo ""
     echo "🧹 Nettoyage des répertoires APS..."
-    for dir in APS0 APS1 APS1a APS2; do
+    for dir in APS0 APS1 APS1a APS2 APS3; do
         if [ -d "$dir" ]; then
             echo "🧼 $dir : make clean"
             (cd "$dir" && make clean)
@@ -17,7 +17,7 @@ clean_all() {
 while true; do
     echo "================================="
     echo "🌐 Choisissez un langage :"
-    select lang in APS0 APS1 APS1a APS2 "Quitter"; do
+    select lang in APS0 APS1 APS1a APS2 APS3 "Quitter"; do
         if [[ "$lang" == "Quitter" ]]; then
             clean_all
             echo "👋 Fin du script. À bientôt !"
