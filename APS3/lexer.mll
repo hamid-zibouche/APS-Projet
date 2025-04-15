@@ -47,6 +47,12 @@ rule token = parse
   | "vset"           { VSET }
   | "vec"            { VEC }
   | "RETURN"        { RETURN }
+  | "(*"             { comment lexbuf } (* Démarrer le traitement des commentaires *)
   | ('-')?['0'-'9']+ as lxm { NUM(int_of_string lxm) }
   | ['a'-'z''A'-'Z']['a'-'z''A'-'Z''0'-'9']* as lxm { IDENT(lxm) }
   | eof              { raise Eof }
+
+and comment = parse
+    "*)"            { token lexbuf } (* Fin du commentaire, revenir à l'analyse normale *)
+  | _               { comment lexbuf }
+  | eof             { raise Eof } (* Gérer la fin de fichier dans un commentaire *)

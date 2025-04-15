@@ -249,11 +249,6 @@ and  evalInst inst env memoire sortie =
     let (v, _,sor1) = evalExpr n env memoire sortie in
     (match v with
     | InZ(n) -> (InER, env, memoire, sor1 @ [InZ(n)])
-(*     | InA(a) -> 
-        (try 
-          let InZ(n) = List.assoc (InA(a)) memoire in 
-          (env, memoire, sortie @ [InZ(n)])
-        with Not_found -> failwith ("Adresse " ^ string_of_int a ^ " non trouvée en mémoire")) *)
     | _ -> failwith "Erreur dans ASTEcho";)
   |ASTSet(ASTId(s), e) -> 
       let adresse = List.assoc s env in
@@ -333,14 +328,13 @@ evalCmds cmds env memoire sortie =
       let (v,new_env, new_memoire, new_sortie) = evalCmd cmd env memoire sortie in
       if v = InER then evalCmds q new_env new_memoire new_sortie
       else
-(*         let (v, new_env1, new_memoire1, new_sortie1) = evalCmds q new_env new_memoire new_sortie in *)
         (v, new_env, new_memoire, new_sortie)
 
 (* evaluation du programme *)
 let rec evalProg prog = let (v,env,mem,sortie) = evalCmds prog [] [] [] in
   match v with
   | InER -> (env, mem, sortie)
-  | InZR(n) -> (env, mem, sortie @ [InZ(n)])
+  | InZR(n) -> (env, mem, sortie) (* un programme de return pas de valeur*)
   | _ -> failwith "Erreur dans evalProg"
 
 (* affichage de la liste des résultats *)

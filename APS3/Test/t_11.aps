@@ -1,7 +1,8 @@
 [   
+  (* test des FunP *)
   VAR x int;
 
-  FUN REC f bool [ a:int, b:int ] [
+  FUN f int [  a:int, b:int ] [
     SET x a;
     WHILE (lt x b)
     [
@@ -12,7 +13,20 @@
     RETURN false
   ];
 
-  ECHO 1
+  FUN g int [  a:int, b:int ] [
+    SET x a;
+    WHILE (lt x b)
+    [
+      IF (eq x 10)
+      [ RETURN true ]
+      [ SET x (add x 1) ] 
+    ];
+    RETURN false
+  ];
+
+  ECHO (f 0 11); (* affiche 1 *)
+  ECHO (g 0 5);  (* affiche 0 *)
+  RETURN -1
 
 ]
 
