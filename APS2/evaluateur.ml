@@ -1,16 +1,6 @@
-open Ast
+open Ast 
 
-type ztype = InZ of int  
-
-type fType = InF of expr * (string list) * env and
-
- fRType = InFR of expr * string * (string list) * env and
-
- pType = InP of (cmd list) * (string list) * env and
-
- pRType = InPR of (cmd list) * string * (string list) * env and
-
- valType = 
+type valType = 
   | InZ of int
   | InF of expr * (string list) * env  
   | InFR of expr * string * (string list) * env
@@ -23,7 +13,7 @@ type fType = InF of expr * (string list) * env and
 
  env = (string * valType) list 
 
-type flux_S = ztype list  
+type flux_S = valType list  
 
 (* compteur d'adresses de la mémoire*)
 let compteur = ref 0
