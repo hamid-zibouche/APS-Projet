@@ -1,5 +1,5 @@
 [
-    PROC mapset [f:(int -> int), xs:(vec int)]
+    PROC REC mapset [f:(int -> int), xs:(vec int)]
     [
         VAR i int;
         SET i 0;

@@ -19,7 +19,7 @@ print_ast:
 
 	$(OCAMLC) -o printer ast.cmo lexer.cmo parser.cmo printer.ml
 
-	$(OCAMLC) -o prologTerm ast.cmo lexer.cmo parser.cmo prologTerm.ml
+#	$(OCAMLC) -o prologTerm ast.cmo lexer.cmo parser.cmo prologTerm.ml
 	$(OCAMLC) -o evaluateur ast.cmo lexer.cmo parser.cmo evaluateur.ml
 
 clean:

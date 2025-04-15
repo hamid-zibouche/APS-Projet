@@ -6,6 +6,7 @@
     IF (lt i 5) [
       SET (nth tab i) (mul i 10);
       SET i (add i 1);
+      ECHO i;
       CALL fill (adr i)
     ] [
       ECHO -1

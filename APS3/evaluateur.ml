@@ -23,6 +23,11 @@ type fType = InF of expr * (string list) * env and
 
  env = (string * valType) list 
 
+(* type de la return *)
+type returnType =
+  | InZR of int
+  | InER 
+
 type flux_S = ztype list  
 
 (* compteur d'adresses de la mémoire*)
@@ -191,37 +196,38 @@ let rec evalExpr exp env memoire sortie =
                         (((a1, v ) :: List.remove_assoc a1 new_env), new_mem)
   and 
 
-  ajouteArgsEnvProc args exprs env envCours memoire=
+  ajouteArgsEnvProc args exprs env envCours memoire sortie=
     match (args, exprs) with
     | ([],[]) -> (env,memoire)
     | ([],_) -> failwith "Trop d'arguments"
     | (_,[]) -> failwith "Pas assez d'arguments"
-    | (a1::aq,e1::eq) -> let (new_env,new_mem) = ajouteArgsEnvProc aq eq env envCours memoire in
-                        (((a1, evalExpar e1 envCours memoire ) :: List.remove_assoc a1 new_env), new_mem)
+    | (a1::aq,e1::eq) -> let (new_env,new_mem) = ajouteArgsEnvProc aq eq env envCours memoire sortie in
+                        (((a1, evalExpar e1 envCours memoire sortie ) :: List.remove_assoc a1 new_env), new_mem)
 
 (* evaluation de chaque lval *)
-let rec evalLval lval env memoire = 
+let rec evalLval lval env memoire sortie = 
   match lval with
   |ASTIdLval(s) -> (try       
                 let adresse = List.assoc s env in 
-                (adresse,memoire) 
+                (adresse,memoire,sortie) 
               with Not_found -> failwith ("Variable " ^ s ^ " non trouvée dans l'environnement"))
 
   | ASTNthLval(l, e) -> 
-      let (v1, mem1,sor1) = evalLval l env memoire in
-      let (v2, mem2,sor2) = evalExpr e env mem1  in
+      let (v1, mem1, sor1) = evalLval l env memoire sortie in
+      let (v2, mem2,sor2) = evalExpr e env mem1 sor1 in
       (match (v1, v2) with
       | (InB(InA(a), n), InZ(i)) -> 
-          if i < 0 || i >= n then 
-            failwith "Erreur: indice hors limites du tableau"
+            if i < 0 || i >= n then 
+            failwith ("Erreur: indice hors limites du tableau. Indice: " ^ string_of_int i ^ ", Adresse: " ^ string_of_int a)
           else 
-            (InA(a + i), mem2)
+(*            Printf.printf "Ok: tableau. Indice: %d, Adresse: %d\n" i a; *)
+            (InA(a + i), mem2,sor2)
       | (InA(a),InZ(i)) -> 
         (match (List.assoc (InA(a)) mem2) with
         | (InB(InA(a2),n)) -> if i < 0 || i >= n then 
           failwith "Erreur: indice hors limites du tableau"
           else 
-          (InA(a2 + i), mem2)
+          (InA(a2 + i), mem2, sor2)
         | _ -> failwith "Erreur: types inattendus pour ASTNthLval"
         )        
       | _ -> failwith "Erreur: types inattendus pour ASTNthLval")
@@ -230,9 +236,9 @@ let rec evalLval lval env memoire =
 let rec evalInst inst env memoire sortie = 
   match inst with
   ASTEcho(n) -> 
-    let (v, _) = evalExpr n env memoire in 
+    let (v, _,sor1) = evalExpr n env memoire sortie in
     (match v with
-    | InZ(n) -> (env, memoire, sortie @ [InZ(n)])
+    | InZ(n) -> (InER, env, memoire, sor1 @ [InZ(n)])
 (*     | InA(a) -> 
         (try 
           let InZ(n) = List.assoc (InA(a)) memoire in 
@@ -240,70 +246,94 @@ let rec evalInst inst env memoire sortie =
         with Not_found -> failwith ("Adresse " ^ string_of_int a ^ " non trouvée en mémoire")) *)
     | _ -> failwith "Erreur dans ASTEcho";)
   |ASTSet(ASTId(s), e) -> 
-      let adresse = List.assoc s env in  
-      let (v,mem) = evalExpr e env memoire in
-      (env,  (adresse, v ) :: List.remove_assoc adresse mem  ,  sortie  )
+      let adresse = List.assoc s env in
+      let (v,mem,sor1) = evalExpr e env memoire sortie in
+      (InER, env,  (adresse, v ) :: List.remove_assoc adresse mem  ,  sor1  )
   |ASTIFB(e,b1,b2) -> 
-      let (v, mem1) = evalExpr e env memoire in
-      if v = InZ(1) then evalCmds b1 env mem1 sortie 
-      else evalCmds b2 env mem1 sortie
-  | ASTWhile(e, b) -> 
+      let (v, mem1, sor1) = evalExpr e env memoire sortie in
+      if v = InZ(1) then let (v,env2,mem2,sor2) = evalCmds b1 env mem1 sor1 in (v ,env2, mem2,sor2)
+      else let (v,env3,mem3,sor3) = evalCmds b2 env mem1 sor1 in (v ,env3, mem3,sor3)
+  | ASTWhile(e, b) ->
     let rec boucle_while env memoire sortie =
-      let (v, mem1) = evalExpr e env memoire in
-      if v = InZ(1) then 
-        let (new_env, new_memoire, new_sortie) = evalCmds b env mem1 sortie in  
-        boucle_while new_env new_memoire new_sortie 
-      else 
-        (env, mem1, sortie)
+      let (v, mem_after, sor_after) = evalExpr e env memoire sortie in
+      if v = InZ(0) then 
+        (InER, env, mem_after, sor_after)
+      else
+        let (v_body, env_body, mem_body, sor_body) = evalCmds b env mem_after sor_after in
+        match v_body with
+        | InER ->
+            boucle_while env_body mem_body sor_body
+        | InZR(n) ->
+            (v_body, env_body, mem_body, sor_body)
     in
     boucle_while env memoire sortie
   |ASTCall(proc,exprs) -> 
-    let (v, mem1) = evalExpr proc env memoire in
+    let (v, mem1,sor1) = evalExpr proc env memoire sortie in
     (match v with
       InP(block, argsproc, envP) -> 
-        let (new_env_Proc,new_mem_Proc) = ajouteArgsEnvProc argsproc exprs envP env mem1 
-        in let (new_env,new_memoire,new_sortie) = evalCmds block new_env_Proc new_mem_Proc sortie
-        in (env,new_memoire,new_sortie)
+        let (new_env_Proc,new_mem_Proc) = ajouteArgsEnvProc argsproc exprs envP env mem1 sor1
+        in let (v1,new_env,new_memoire,new_sortie) = evalCmds block new_env_Proc new_mem_Proc sor1
+        in (v1,env,new_memoire,new_sortie)
       |InPR(block,id ,argsproc, envP) -> 
-        let (new_env_Proc,new_mem_Proc) = ajouteArgsEnvProc argsproc exprs envP env memoire 
-        in let (new_env,new_memoire,new_sortie) = evalCmds block ( (id,InPR(block,id ,argsproc, envP))
-                                    :: new_env_Proc ) new_mem_Proc sortie
-      in (env,new_memoire,new_sortie)
+        let (new_env_Proc,new_mem_Proc) = ajouteArgsEnvProc argsproc exprs envP env memoire sor1
+        in let (v1,new_env,new_memoire,new_sortie) = evalCmds block ( (id,InPR(block,id ,argsproc, envP))
+                                    :: new_env_Proc ) new_mem_Proc sor1
+      in (v1,env,new_memoire,new_sortie)
       |_ -> failwith "procedure non définie"
     ) 
   |ASTSetTab(lval,e) -> 
-    let (v,mem1) = evalExpr e env memoire in 
-    let (adresse,mem2) =  evalLval lval env mem1 in
-    (env, ((adresse, v) :: List.remove_assoc adresse mem2) , sortie)        
+    let (v,mem1,sor1) = evalExpr e env memoire sortie in
+    let (adresse,mem2,sor2) =  evalLval lval env mem1 sor1 in
+    (InER,env, ((adresse, v) :: List.remove_assoc adresse mem2) , sor2)
     
   |_ -> failwith "Erreur dans la syntaxe"
   
 and  
  evalCmd cmd env memoire sortie = 
   match cmd with
-  ASTConst (ASTId(s),_,v) -> let (e,mem) = evalExpr v env memoire in ((s, e) :: List.remove_assoc s env , mem, sortie)
-  |ASTFun (ASTId(s),_,args,e) -> ((s, InF( e , sorteArgs args ,env)) :: List.remove_assoc s env, memoire, sortie) 
-  |ASTFunRec (ASTId(s),_,args,e) -> ((s, InFR( e ,s, sorteArgs args ,env)) :: List.remove_assoc s env , memoire,  sortie)
-  |ASTStat(e) -> evalInst e env memoire sortie
-  |ASTVar(ASTId(s),_) -> ( (s, InA (incrementer ())) :: List.remove_assoc s env , memoire, sortie)
-  |ASTProc (ASTId(s),args,bk) -> ((s, InP( bk , sorteArgsP args ,env)) :: List.remove_assoc s env, memoire, sortie)
-  |ASTProcRec (ASTId(s),args,bk) -> ((s, InPR(bk ,s, sorteArgsP args ,env)) :: List.remove_assoc s env , memoire,  sortie)
-  |ASTFunCMD (ASTId(s),_,args,bk) -> failwith "Erreur dans FUNCMD"
-  |ASTFunRecCMD (ASTId(s),_,args,bk) -> failwith "Erreur dans FUNRECCMD"
-
+  ASTConst (ASTId(s),_,v) -> let (e,mem,sor1) = evalExpr v env memoire sortie in (InER, (s, e) :: List.remove_assoc s env , mem, sor1)
+  |ASTFun (ASTId(s),_,args,e) -> (InER, (s, InF( e , sorteArgs args ,env)) :: List.remove_assoc s env, memoire, sortie) 
+  |ASTFunRec (ASTId(s),_,args,e) -> (InER, (s, InFR( e ,s, sorteArgs args ,env)) :: List.remove_assoc s env , memoire,  sortie)
+  |ASTStat(e) -> let (v,env1,mem1,sor1) = evalInst e env memoire sortie in (v,env1, mem1, sor1)
+  |ASTVar(ASTId(s),_) -> (InER, (s, InA (incrementer ())) :: List.remove_assoc s env , memoire, sortie)
+  |ASTProc (ASTId(s),args,bk) -> (InER, (s, InP( bk , sorteArgsP args ,env)) :: List.remove_assoc s env, memoire, sortie)
+  |ASTProcRec (ASTId(s),args,bk) -> (InER, (s, InPR(bk ,s, sorteArgsP args ,env)) :: List.remove_assoc s env , memoire,  sortie)
+  |ASTFunCMD (ASTId(s),_,args,bk) -> (InER, (s, InP( bk , sorteArgsP args ,env)) :: List.remove_assoc s env, memoire, sortie) 
+  |ASTFunRecCMD (ASTId(s),_,args,bk) -> (InER,( s, InPR(bk ,s, sorteArgsP args ,env)) :: List.remove_assoc s env , memoire,  sortie)
+  |ASTRet (ret) -> 
+    let (InZ(v), mem1, sor1) = evalRet ret env memoire sortie in
+    (InZR(v),env, mem1, sor1)
+    
   |_ -> failwith "Erreur dans la syntaxe"
+
+and 
+  evalRet ret env memoire sortie = 
+    match ret with
+    |ASTReturn e -> 
+      let (v, mem1, sor1) = evalExpr e env memoire sortie in
+      (v, mem1, sor1)
+    |_ -> failwith "Erreur dans evalRet"
 
 and
 (* evaluation de la suite de commandes *)
 evalCmds cmds env memoire sortie =
   match cmds with
-  | [] -> (env, memoire, sortie)
+  | [] -> (InER,env, memoire, sortie)
   | cmd::q -> 
-      let (new_env, new_memoire, new_sortie) = evalCmd cmd env memoire sortie in
-      evalCmds q new_env new_memoire new_sortie  
+      let (v,new_env, new_memoire, new_sortie) = evalCmd cmd env memoire sortie in
+      if v = InER then evalCmds q new_env new_memoire new_sortie
+      else
+(*         let (v, new_env1, new_memoire1, new_sortie1) = evalCmds q new_env new_memoire new_sortie in *)
+        (v, new_env, new_memoire, new_sortie)
 
 (* evaluation du programme *)
-let rec evalProg prog = evalCmds prog [] [] []
+let rec evalProg prog = let (v,env,mem,sortie) = evalCmds prog [] [] [] in
+  match v with
+  | InER -> (env, mem, sortie)
+  | InZR(n) -> (env, mem, sortie @ [InZ(n)])
+  | _ -> failwith "Erreur dans evalProg"
+
+(* affichage de la liste des résultats *)
 
 let rec afficheliste l = 
   match l with 

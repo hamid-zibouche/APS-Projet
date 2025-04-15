@@ -1,10 +1,16 @@
-[
-    FUN REC si int [x:int] 
+[   
+    VAR y int;
+
+    FUN REC si int [var x:int] 
       [ IF (eq x 3)
 
-        [RETURN 1]
-        [RETURN 0]
+        [ECHO 12 ; RETURN x]
+        [RETURN 0];
+        ECHO 99
       ];
-    ECHO (si 3)
+
+    SET y 3;
+    CALL si (adr y);
+    ECHO -1
 ]
 
