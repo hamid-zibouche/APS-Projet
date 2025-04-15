@@ -65,33 +65,40 @@ bt_expr(G,app(id(F),A),T) :- parcoursArg(G,A,L2), member((F,fun_t(L2,T)), G).
 bt_expr(G,app(F,A),T) :- parcoursArg(G,A,L2), bt_expr(G,F,fun_t(L2,T)).
 bt_expr(G,ferm(A,E),fun_t(TA,T)) :- parcoursArgFun(A,TA), ajoutRec(G,A,G1), bt_expr(G1,E,T).
 
+%% ajout dans un environnement
 ajoutRec(G, [], G).
 ajoutRec(G, [(id(X),T)|L], G1) :- 
     ajoutRec([(X,T)|G], L, G1).
 
+%% parcours arguments des appels
 parcoursArg(_, [], []). 
 parcoursArg(G, [A|AL], [T|TL]) :- 
     bt_expr(G, A, T),
     parcoursArg(G, AL, TL).
 
+%% parcours arguments des procédures
 parcoursArgPar(_, [], []). 
 parcoursArgPar(G, [A|AL], [T|TL]) :- 
     bt_expar(G, A, T),
     parcoursArgPar(G, AL, TL).
 
+%% parcours arguments des fonctions
 parcoursArgFun([], []).
 parcoursArgFun([(id(_),T)|AL], [T|L]) :- 
     parcoursArgFun(AL, L).
 
+%% changement du type des arguments procéduraux
 changeArg([],[]).
 changeArg([(varp(X),T)|AL], [(id(X),ref(T))|L]) :- changeArg(AL,L).
 changeArg([(id(X),T)|AL], [(id(X),T)|L]) :- changeArg(AL,L).
 
+%% mise à jour environnement
 update(G1, X, T, G2) :-
     (   select((X,_), G1, G1SansX) 
     ->  G2 = [(X,T)|G1SansX]  
     ;   G2 = [(X,T)|G1]       
     ).
 
+%% lecture du programme
 :-  read(X),
     bt_prog(X).
