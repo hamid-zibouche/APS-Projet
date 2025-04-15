@@ -5,8 +5,6 @@
 
     SET (nth (nth tab 0) 0) 69;
 
-
-
     ECHO (nth (nth tab 0) 0)
 
 
