@@ -1,29 +1,24 @@
-(* ========================================================================== *)
-(* == UPMC/master/info/4I506 -- Janvier 2016/2017/2018                     == *)
-(* == SU/FSI/master/info/MU4IN503 -- Janvier 2020/2021/2022                == *)
-(* == Analyse des programmes et sémantiques                                == *)
-(* ========================================================================== *)
-(* == hello-APS Syntaxe ML                                                 == *)
-(* == Fichier: prologTerm.ml                                               == *)
-(* ==  Génération de termes Prolog                                         == *)
-(* ========================================================================== *)
 open Ast
 
+(* Conversion des types vers leur représentation textuelle *)
 let rec print_typee c =
   match c with
     ASTBool  -> "bool_t"
     |ASTInt  -> "int_t"
-    | ASTTypes (args, ret) ->
+    | ASTTypes (args, ret) ->  (* Type fonction avec arguments et type de retour *)
       let args_str = "[" ^ String.concat ", " (List.map print_typee args) ^ "]" in
       "fun_t(" ^ args_str ^ ", " ^ print_typee ret ^ ")"
-    | ASTVec t -> "vec_t(" ^ print_typee t ^ ")" 
- 
+    | ASTVec t -> "vec_t(" ^ print_typee t ^ ")"  (* Type tableau *)
+
+(* Affichage d'un argument de fonction *)
 let print_arg (ASTArg (name, typee)) =
   "(id(\"" ^ name ^ "\"), " ^ print_typee typee ^ ")"
 
+(* Affichage d'une liste d'arguments *)
 let print_args args ="[" ^
   (String.concat ", " (List.map print_arg args)) ^ "]"
 
+(* Affichage d'un paramètre de procédure (normal ou variable) *)
 let print_argp a = 
   match a with 
    (ASTArgp (name, typee)) -> "(id(\"" ^ name ^ "\"), " ^ print_typee typee ^ ")"
@@ -32,6 +27,7 @@ let print_argp a =
 let print_argsp args ="[" ^
   (String.concat ", " (List.map print_argp args)) ^ "]"
 
+(* Affichage des expressions du langage *)
 let rec print_expr e =
   match e with
       ASTNum n -> Printf.printf"num(%d)" n
@@ -45,11 +41,11 @@ let rec print_expr e =
             Printf.printf(",");
             print_expr e ; 
             Printf.printf(")")
-    | ASTAlloc(e) -> Printf.printf "alloc("; print_expr e ; Printf.printf ")"
-    | ASTLen (e) -> Printf.printf "len("; print_expr e ; Printf.printf ")"
-    | ASTNthExpr (e1, e2) -> Printf.printf "nth("; print_expr e1; Printf.printf ","; print_expr e2 ; Printf.printf ")"
-    | ASTVset (e1, e2, e3) -> Printf.printf "vset("; print_expr e1; Printf.printf ","; print_expr e2; Printf.printf ","; print_expr e3 ; Printf.printf ")"
-  
+    | ASTAlloc(e) -> Printf.printf "alloc("; print_expr e ; Printf.printf ")"  (* Allocation tableau *)
+    | ASTLen (e) -> Printf.printf "len("; print_expr e ; Printf.printf ")"    (* Longueur tableau *)
+    | ASTNthExpr (e1, e2) -> Printf.printf "nth("; print_expr e1; Printf.printf ","; print_expr e2 ; Printf.printf ")"  (* Accès tableau *)
+    | ASTVset (e1, e2, e3) -> Printf.printf "vset("; print_expr e1; Printf.printf ","; print_expr e2; Printf.printf ","; print_expr e3 ; Printf.printf ")"  (* Modification tableau *)
+
 and print_exprs es =
   match es with
       [] -> ()
@@ -60,16 +56,17 @@ and print_exprs es =
   print_exprs es
       )
 
+(* Affichage des l-values (emplacements modifiables) *)
 let rec print_lval v = 
   match v with
   | ASTIdLval x -> Printf.printf"id(\"%s\")" x
   | ASTNthLval (value,s) -> Printf.printf("nth("); print_lval(value); Printf.printf(","); print_expr(s); Printf.printf(")") 
 
-
+(* Affichage des paramètres d'appel *)
 let rec print_exprp e =
   match e with
   | ASTExpr exp -> print_expr exp
-  | ASTAdr s -> Printf.printf "adr(\"%s\")" s
+  | ASTAdr s -> Printf.printf "adr(\"%s\")" s  (* Passage par adresse *)
       
 and print_exprsp es =
     match es with
@@ -83,6 +80,7 @@ and print_exprsp es =
 
 let print_ret (ASTReturn e) = (Printf.printf("ret("); print_expr(e); Printf.printf(")"))
 
+(* Affichage des instructions *)
 let rec print_stat s =
   match s with
     ASTEcho e -> (Printf.printf("echo("); print_expr(e); Printf.printf(")"))
@@ -90,9 +88,11 @@ let rec print_stat s =
     |ASTIFB (e,b1,b2) -> Printf.printf "ifb("; print_expr e; Printf.printf"," ; print_cmds b1; Printf.printf","; print_cmds b2; Printf.printf ")"
     |ASTWhile (e,b) -> Printf.printf "while("; print_expr e; Printf.printf"," ; print_cmds b ; Printf.printf ")"
     |ASTCall (ident,args) -> Printf.printf "call("; print_expr ident; Printf.printf",[" ; print_exprsp args ; Printf.printf "])"
-    |ASTSetTab (value,e) -> Printf.printf "setTab("; print_lval (value); Printf.printf ","; print_expr(e); Printf.printf")"
+    |ASTSetTab (value,e) -> Printf.printf "setTab("; print_lval (value); Printf.printf ","; print_expr(e); Printf.printf")"  (* Affectation tableau *)
+
 and
 
+(* Affichage des déclarations et commandes *)
  print_cmd c =
   match c with
       ASTStat s -> print_stat s
@@ -150,6 +150,7 @@ and
     
 and
 
+(* Affichage d'un bloc de commandes *)
  print_cmds cs =
   Printf.printf "block([";
   (match cs with
@@ -165,6 +166,7 @@ and
       in aux cs);
   Printf.printf "])"
 	
+(* Point d'entrée principal - affichage du programme complet *)
 let print_prog p =
   Printf.printf("prog(");
   print_cmds p;
@@ -180,4 +182,3 @@ let ic = open_in fname in
       print_string ".\n"
   with Lexer.Eof ->
     exit 0
-      

@@ -1,7 +1,6 @@
 open Ast
 
-type ztype = InZ of int  
-
+(* types des fonctions et procédures *)
 type fType = InF of expr * (string list) * env and
 
  fRType = InFR of expr * string * (string list) * env and
@@ -10,6 +9,7 @@ type fType = InF of expr * (string list) * env and
 
  pRType = InPR of (cmd list) * string * (string list) * env and
 
+ (* Type général des valeurs manipulées *)
  valType = 
   | InZ of int
   | InF of expr * (string list) * env  
@@ -19,31 +19,31 @@ type fType = InF of expr * (string list) * env and
   | InP of (cmd list) * (string list) * env
   | InPR of (cmd list) * string * (string list) * env and
 
+ (* Mémoire et environnement *)
  memoire = (valType * valType) list and
-
  env = (string * valType) list 
 
-(* type de la return *)
+(* type de retour *)
 type returnType =
   | InZR of int
   | InER 
 
-type flux_S = ztype list  
+(* Flux de sortie *)
+type flux_S = valType list  
 
-(* compteur d'adresses de la mémoire*)
+(* Gestion de la mémoire - compteur d'adresses *)
 let compteur = ref 0
 
 let incrementer () =
   compteur := !compteur + 1;
   !compteur
 
-
+(* Fonctions auxiliaires pour extraire les arguments *)
 let rec sorteArgs args = 
   match args with
   | []->[]
   | ASTArg(id,_)::q -> id :: sorteArgs q 
 
-(*  *)
 let rec sorteArgsP argsP = 
   match argsP with
   | []->[]
@@ -60,12 +60,6 @@ let valIntToInt x =
   |InZ(e) -> e 
   | _ -> failwith "valIntToInt : Valeur inattendue (pas un entier)"
 
-let string_of_val = function
-| InZ n -> string_of_int n
-| InF (_, args, _) -> "<function> with args: " ^ String.concat ", " args
-| InFR (_, name, args, _) -> "<recursive function " ^ name ^ "> with args: " ^ String.concat ", " args
-| _ -> ""
-
 let allocn n = 
   let prem = InA (incrementer ()) in 
   let rec aux n =
@@ -75,7 +69,7 @@ let allocn n =
   aux (n - 1); 
   prem
 
-(* evaluation de chaque expression *)
+(* Évaluation des expressions *)
 let rec evalExpr exp env memoire sortie =
   match exp with
   |ASTId ("true") -> (InZ(1),memoire,sortie)
@@ -184,9 +178,9 @@ let rec evalExpr exp env memoire sortie =
                   | _ -> failwith "Erreur: types inattendus pour ASTLen")
   
   
-  and
+  and 
 
-  evalExpar exp env memoire sortie = 
+  evalExpar exp env memoire sortie = (* Évaluation des paramètres *)
    match exp with 
    |ASTExpr(e) -> 
       let (v,mem,sor1) = evalExpr e env memoire sortie in (v)
@@ -196,14 +190,14 @@ let rec evalExpr exp env memoire sortie =
 
   and 
 
-  ajouteArgsEnvFun args exprs env envCours memoire sortie=
+  ajouteArgsEnvFun args exprs env envCours memoire sortie= (* Gestion des arguments dans l'environnement *)
     match (args, exprs) with
     | ([],[]) -> (env,memoire)
     | ([],_) -> failwith "Trop d'arguments"
     | (_,[]) -> failwith "Pas assez d'arguments"
     | (a1::aq,e1::eq) -> let (new_env,new_mem) = ajouteArgsEnvFun aq eq env envCours memoire sortie in
                          let (v,mem,sor1) = evalExpr e1 envCours memoire sortie in
-                        (((a1, v ) :: List.remove_assoc a1 new_env), new_mem)
+                         (((a1, v ) :: List.remove_assoc a1 new_env), new_mem)
   and 
 
   ajouteArgsEnvProc args exprs env envCours memoire sortie=
@@ -220,36 +214,37 @@ and evalLval lval env memoire sortie =
   |ASTIdLval(s) -> (try       
                 let adresse = List.assoc s env in 
                 (adresse,memoire,sortie) 
-              with Not_found -> failwith ("Variable " ^ s ^ " non trouvée dans l'environnement"))
+                with Not_found -> failwith ("Variable " ^ s ^ " non trouvée dans l'environnement"))
 
   | ASTNthLval(l, e) -> 
       let (v1, mem1, sor1) = evalLval l env memoire sortie in
       let (v2, mem2,sor2) = evalExpr e env mem1 sor1 in
       (match (v1, v2) with
-      | (InB(InA(a), n), InZ(i)) -> 
-            if i < 0 || i >= n then 
-            failwith ("Erreur: indice hors limites du tableau. Indice: " ^ string_of_int i ^ ", Adresse: " ^ string_of_int a)
-          else 
-(*            Printf.printf "Ok: tableau. Indice: %d, Adresse: %d\n" i a; *)
-            (InA(a + i), mem2,sor2)
-      | (InA(a),InZ(i)) -> 
-        (match (List.assoc (InA(a)) mem2) with
-        | (InB(InA(a2),n)) -> if i < 0 || i >= n then 
-          failwith "Erreur: indice hors limites du tableau"
-          else 
-          (InA(a2 + i), mem2, sor2)
+        | (InB(InA(a), n), InZ(i)) -> 
+              if i < 0 || i >= n then 
+              failwith ("Erreur: indice hors limites du tableau. Indice: " ^ string_of_int i ^ ", Adresse: " ^ string_of_int a)
+            else 
+              (InA(a + i), mem2,sor2)
+        | (InA(a),InZ(i)) -> 
+          (match (List.assoc (InA(a)) mem2) with
+            | (InB(InA(a2),n)) -> if i < 0 || i >= n then 
+              failwith "Erreur: indice hors limites du tableau"
+              else 
+              (InA(a2 + i), mem2, sor2)
+            | _ -> failwith "Erreur: types inattendus pour ASTNthLval"
+          )        
         | _ -> failwith "Erreur: types inattendus pour ASTNthLval"
-        )        
-      | _ -> failwith "Erreur: types inattendus pour ASTNthLval")
+      )
                         
-(* evaluation de chaque commande *)
+(* Évaluation des instructions *)
 and  evalInst inst env memoire sortie = 
   match inst with
   ASTEcho(n) -> 
     let (v, _,sor1) = evalExpr n env memoire sortie in
     (match v with
-    | InZ(n) -> (InER, env, memoire, sor1 @ [InZ(n)])
-    | _ -> failwith "Erreur dans ASTEcho";)
+      | InZ(n) -> (InER, env, memoire, sor1 @ [InZ(n)])
+      | _ -> failwith "Erreur dans ASTEcho";
+    )
   |ASTSet(ASTId(s), e) -> 
       let adresse = List.assoc s env in
       let (v,mem,sor1) = evalExpr e env memoire sortie in
@@ -293,8 +288,8 @@ and  evalInst inst env memoire sortie =
     
   |_ -> failwith "Erreur dans la syntaxe"
   
-and  
- evalCmd cmd env memoire sortie = 
+and 
+ evalCmd cmd env memoire sortie =  (* Évaluation des commandes *)
   match cmd with
   ASTConst (ASTId(s),_,v) -> let (e,mem,sor1) = evalExpr v env memoire sortie in (InER, (s, e) :: List.remove_assoc s env , mem, sor1)
   |ASTFun (ASTId(s),_,args,e) -> (InER, (s, InF( e , sorteArgs args ,env)) :: List.remove_assoc s env, memoire, sortie) 
@@ -306,22 +301,23 @@ and
   |ASTFunCMD (ASTId(s),_,args,bk) -> (InER, (s, InP( bk , sorteArgs args ,env)) :: List.remove_assoc s env, memoire, sortie) 
   |ASTFunRecCMD (ASTId(s),_,args,bk) -> (InER,( s, InPR(bk ,s, sorteArgs args ,env)) :: List.remove_assoc s env , memoire,  sortie)
   |ASTRet (ret) -> 
-    let (InZ(v), mem1, sor1) = evalRet ret env memoire sortie in
-    (InZR(v),env, mem1, sor1)
+    let (v, mem1, sor1) = evalRet ret env memoire sortie in
+    (match v with
+      | InZ(n) -> (InZR(n),env, mem1, sor1)
+      | _ -> failwith "Erreur: retour non valide, entier attendu")
     
-  |_ -> failwith "Erreur dans la syntaxe"
+  | _ -> failwith "Erreur dans la syntaxe"
 
 and 
-  evalRet ret env memoire sortie = 
+  evalRet ret env memoire sortie = (* Évaluation des retours *)
     match ret with
     |ASTReturn e -> 
       let (v, mem1, sor1) = evalExpr e env memoire sortie in
       (v, mem1, sor1)
-    |_ -> failwith "Erreur dans evalRet"
 
 and
-(* evaluation de la suite de commandes *)
-evalCmds cmds env memoire sortie =
+
+evalCmds cmds env memoire sortie = (* Évaluation des blocs de commandes *)
   match cmds with
   | [] -> (InER,env, memoire, sortie)
   | cmd::q -> 
@@ -330,15 +326,13 @@ evalCmds cmds env memoire sortie =
       else
         (v, new_env, new_memoire, new_sortie)
 
-(* evaluation du programme *)
+(* Point d'entrée principal - évaluation du programme complet *)
 let rec evalProg prog = let (v,env,mem,sortie) = evalCmds prog [] [] [] in
   match v with
   | InER -> (env, mem, sortie)
   | InZR(n) -> (env, mem, sortie) (* un programme de return pas de valeur*)
-  | _ -> failwith "Erreur dans evalProg"
 
-(* affichage de la liste des résultats *)
-
+(* Affichage des résultats *)
 let rec afficheliste l = 
   match l with 
   |[]->""
@@ -346,6 +340,7 @@ let rec afficheliste l =
   |InA(a) :: q -> (string_of_int a) ^ "\n" ^ (afficheliste q)
   |_ -> failwith "Erreur dans la syntaxe";;
 
+(* Point d'entrée du programme *)
 let fname = Sys.argv.(1) in
 let ic = open_in fname in
   try

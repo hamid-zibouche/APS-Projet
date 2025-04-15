@@ -3,12 +3,6 @@ YACC_ML = /usr/bin/ocamlyacc
 #YACC_ML = /usr/local/bin/ocamlyacc #chemin de prof
 OCAMLC = ocamlc
 
-#parser: ast.ml lexer.mll parser.mly
-	
-
-#printer: printer.ml
-	
-
 print_ast: 
 	$(OCAMLC) -c ast.ml
 	$(LEX_ML) -o lexer.ml lexer.mll
@@ -16,8 +10,6 @@ print_ast:
 	$(OCAMLC) -c parser.mli
 	$(OCAMLC) -c lexer.ml
 	$(OCAMLC) -c parser.ml
-
-	$(OCAMLC) -o printer ast.cmo lexer.cmo parser.cmo printer.ml
 
 	$(OCAMLC) -o prologTerm ast.cmo lexer.cmo parser.cmo prologTerm.ml
 	$(OCAMLC) -o evaluateur ast.cmo lexer.cmo parser.cmo evaluateur.ml
