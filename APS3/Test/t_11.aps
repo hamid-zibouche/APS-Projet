@@ -7,10 +7,10 @@
     WHILE (lt x b)
     [
       IF (eq x 10)
-      [ RETURN true ]
+      [ RETURN 1 ]
       [ SET x (add x 1) ] 
     ];
-    RETURN false
+    RETURN 0
   ];
 
   FUN g int [  a:int, b:int ] [
@@ -18,15 +18,14 @@
     WHILE (lt x b)
     [
       IF (eq x 10)
-      [ RETURN true ]
+      [ RETURN 1 ]
       [ SET x (add x 1) ] 
     ];
-    RETURN false
+    RETURN 0
   ];
 
   ECHO (f 0 11); (* affiche 1 *)
-  ECHO (g 0 5);  (* affiche 0 *)
-  RETURN -1
+  ECHO (g 0 5)  (* affiche 0 *)
 
 ]
 
