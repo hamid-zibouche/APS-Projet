@@ -60,8 +60,8 @@ cmd =
   | ASTVar of expr * typee
   | ASTProc of expr * argp list * cmd list
   | ASTProcRec of expr * argp list * cmd list
-  | ASTFunCMD of expr * typee * argp list * cmd list
-  | ASTFunRecCMD of expr * typee * argp list * cmd list
+  | ASTFunCMD of expr * typee * arg list * cmd list
+  | ASTFunRecCMD of expr * typee * arg list * cmd list
   | ASTRet of ret
 
 and 

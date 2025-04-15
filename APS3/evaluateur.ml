@@ -126,6 +126,16 @@ let rec evalExpr exp env memoire sortie =
                                           evalExpr eprime new_env new_mem sortie
           |InFR(eprime,id ,argsfun, envF) -> let (new_env,new_mem) = ajouteArgsEnvFun argsfun exprs envF env mem sor1 in
                                           evalExpr eprime ( (id,InFR(eprime,id ,argsfun, envF)) ::new_env ) new_mem sortie
+          |InP(bk,argsFunP,envFP) -> let (new_env,new_mem) = ajouteArgsEnvFun argsFunP exprs envFP env mem sor1 in
+                                          let (v1,new_env1,new_memoire,new_sortie) = evalCmds bk new_env new_mem sortie in
+                                          (match v1 with
+                                          |InZR(n)-> (InZ(n),new_memoire,new_sortie)
+                                          |_ -> failwith "la fonction procedurale n'a pas de valeur de retour")                                      
+          |InPR(bk,id,argsFunP,envFP) -> let (new_env,new_mem) = ajouteArgsEnvFun argsFunP exprs envFP env mem sortie in
+                                         let (v1,new_env1,new_memoire,new_sortie) = evalCmds bk ( (id,InPR(bk,id,argsFunP,envFP)) ::new_env ) new_mem sortie in
+                                         (match v1 with
+                                         |InZR(n)-> (InZ(n),new_memoire,new_sortie)
+                                         |_ -> failwith "la fonction procedurale n'a pas de valeur de retour")
           |_ -> failwith "Fonction non définie"
         )
     )
@@ -205,7 +215,7 @@ let rec evalExpr exp env memoire sortie =
                         (((a1, evalExpar e1 envCours memoire sortie ) :: List.remove_assoc a1 new_env), new_mem)
 
 (* evaluation de chaque lval *)
-let rec evalLval lval env memoire sortie = 
+and evalLval lval env memoire sortie = 
   match lval with
   |ASTIdLval(s) -> (try       
                 let adresse = List.assoc s env in 
@@ -233,7 +243,7 @@ let rec evalLval lval env memoire sortie =
       | _ -> failwith "Erreur: types inattendus pour ASTNthLval")
                         
 (* evaluation de chaque commande *)
-let rec evalInst inst env memoire sortie = 
+and  evalInst inst env memoire sortie = 
   match inst with
   ASTEcho(n) -> 
     let (v, _,sor1) = evalExpr n env memoire sortie in
@@ -298,8 +308,8 @@ and
   |ASTVar(ASTId(s),_) -> (InER, (s, InA (incrementer ())) :: List.remove_assoc s env , memoire, sortie)
   |ASTProc (ASTId(s),args,bk) -> (InER, (s, InP( bk , sorteArgsP args ,env)) :: List.remove_assoc s env, memoire, sortie)
   |ASTProcRec (ASTId(s),args,bk) -> (InER, (s, InPR(bk ,s, sorteArgsP args ,env)) :: List.remove_assoc s env , memoire,  sortie)
-  |ASTFunCMD (ASTId(s),_,args,bk) -> (InER, (s, InP( bk , sorteArgsP args ,env)) :: List.remove_assoc s env, memoire, sortie) 
-  |ASTFunRecCMD (ASTId(s),_,args,bk) -> (InER,( s, InPR(bk ,s, sorteArgsP args ,env)) :: List.remove_assoc s env , memoire,  sortie)
+  |ASTFunCMD (ASTId(s),_,args,bk) -> (InER, (s, InP( bk , sorteArgs args ,env)) :: List.remove_assoc s env, memoire, sortie) 
+  |ASTFunRecCMD (ASTId(s),_,args,bk) -> (InER,( s, InPR(bk ,s, sorteArgs args ,env)) :: List.remove_assoc s env , memoire,  sortie)
   |ASTRet (ret) -> 
     let (InZ(v), mem1, sor1) = evalRet ret env memoire sortie in
     (InZR(v),env, mem1, sor1)
