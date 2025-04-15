@@ -6,8 +6,7 @@
         IF (eq x 3)
 
         [ECHO 12 ; RETURN x]
-        [RETURN 0];
-        ECHO 99
+        [RETURN 0]
       ];
 
     SET y 3;

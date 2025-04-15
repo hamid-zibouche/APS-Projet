@@ -17,17 +17,18 @@ bt_block(G,block(Cs),T) :- bt_cmds(G,Cs,T).
 bt_cmds(G,[ret(E)],T) :- bt_expr(G,E,T).
 bt_cmds(G,[S],T) :- bt_stat(G,S,T).
 bt_cmds(G,[T|L],TY) :- bt_stat(G,T,void_t), bt_cmds(G,L,TY).
-bt_cmds(G,[T|L],TY) :- bt_stat(G,T,(TY,void_t)), bt_cmds(G,L,TY).
-bt_cmds(G,[T|L],TY) :- bt_stat(G,T,TY), bt_cmds(G,L,TY).
-bt_cmds(G,[T|L],TY) :- bt_def(G,T,G2), bt_cmds(G2,L,TY).
+bt_cmds(G,[T|L],TY) :- bt_stat(G,T,(TY,void_t)), bt_cmds(G,L,TY), TY\=void_t.
+bt_cmds(G,[T|L],_) :- bt_def(G,T,G2), bt_cmds(G2,L,_).
 
 %% instructions
 bt_stat(G,echo(E),void_t) :- bt_expr(G,E,int_t).
 bt_stat(G,set(id(X),E),void_t):- member((X,ref(T)),G), bt_expr(G,E,T).
-bt_stat(G,ifb(E,BK1,BK2),T) :- bt_expr(G,E,bool_t), bt_block(G,BK1,T), bt_block(G,BK2,T).
 bt_stat(G,ifb(E,BK1,BK2),(T,void_t)) :- bt_expr(G,E,bool_t), bt_block(G,BK1,T), bt_block(G,BK2,void_t), T \=void_t.
 bt_stat(G,ifb(E,BK1,BK2),(T,void_t)) :- bt_expr(G,E,bool_t), bt_block(G,BK1,void_t), bt_block(G,BK2,T), T \=void_t.
-bt_stat(G,while(E,BK), void_t) :- bt_expr(G,E,bool_t), bt_block(G,BK,_).
+bt_stat(G,ifb(E,BK1,BK2),T) :- bt_expr(G,E,bool_t), bt_block(G,BK1,T), bt_block(G,BK2,T).
+bt_stat(G,while(E,BK), void_t) :- bt_expr(G,E,bool_t), bt_block(G,BK,void_t).
+bt_stat(G,while(E,BK), (T,void_t)) :- bt_expr(G,E,bool_t), bt_block(G,BK,(T,void_t)).
+bt_stat(G,while(E,BK), (T,void_t)) :- bt_expr(G,E,bool_t), bt_block(G,BK,T).
 bt_stat(G,call(F,A),void_t) :- parcoursArgPar(G,A,L2), bt_expr(G,F,fun_t(L2,void_t)).
 bt_stat(G,setTab(X,E),void_t) :- bt_expr(G,X,T), bt_expr(G,E,T).  
 
@@ -48,13 +49,13 @@ bt_def(G1, var(id(X),bool_t), G2) :- update(G1,X,ref(bool_t),G2).
 bt_def(G1, proc(id(X),A,B), G2) :- changeArg(A,AN),
                                    parcoursArgFun(AN, TR),
                                    ajoutRec(G1,AN,G3),
-                                   bt_block(G3,B),
+                                   bt_block(G3,B,void_t),
                                    update(G1,X,fun_t(TR,void_t),G2).
 bt_def(G1, procRec(id(X),A,B), G2) :- changeArg(A, AN),
                                     parcoursArgFun(AN,TR),
                                    update(G1,X,fun_t(TR,void_t),G2),
                                    ajoutRec(G2,AN,G3),
-                                   bt_block(G3,B).
+                                   bt_block(G3,B,void_t).
 bt_def(G1,funCmd(id(X),T,A,B),G2) :- ajoutRec(G1,A,G3), 
                                     bt_block(G3,B,T),
                                     parcoursArgFun(A,TR),

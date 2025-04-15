@@ -1,7 +1,7 @@
 [   
   VAR x int;
 
-  FUN REC f int [ a:int, b:int ] [
+  FUN REC f bool [ a:int, b:int ] [
     SET x a;
     WHILE (lt x b)
     [
@@ -12,7 +12,7 @@
     RETURN false
   ];
 
-  ECHO (f 0 9)
+  ECHO 1
 
 ]
 
