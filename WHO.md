@@ -2,7 +2,7 @@
 
 ## Collaborateurs
 
-### Ronald Fagbehouro
+### Awwal Fagbehouro
 - **Email** : ronaldfagbehouro@gmail.com
 - **Numéro etudiant** : 21417088
 
