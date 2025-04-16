@@ -33,6 +33,9 @@ Avant de commencer, assurez-vous d'avoir les outils suivants installés sur votr
    swipl --version
    ``` 
 
+4. **Assurez-vous que `ocamlyacc` est installé dans `/usr/bin/`**  
+   Cette condition est indispensable pour compiler les fichiers correctement, que ce soit via la commande `make` ou à l'aide des scripts shell (`.sh`).
+
 ### Lancement des Tests avec typeurOnly.sh et evaluateurOnly.sh
 
 Chaque répertoire de langage contient :
