@@ -46,7 +46,7 @@ Chaque répertoire de langage contient :
   ./prologTerm <fichier_test.aps> | swipl typeur.pl
   ```
 
-  Pour lancer les tests du typeur, placez-vous dans le répertoire concerné (par exemple, `APS0`) puis exécutez :
+  Pour lancer les tests du dossier Test pour le typeur, placez-vous dans le répertoire concerné (par exemple, `APS0`) puis exécutez :
 
   ``` bash
   ./typeurOnly.sh
@@ -58,7 +58,7 @@ Chaque répertoire de langage contient :
   timeout 3s ./evaluateur <fichier_test.aps>
   ```
 
-  Pour lancer ces tests, placez-vous dans le répertoire concerné et exécutez :
+  Pour lancer ces tests du dossier Test pour l'évaluateur, placez-vous dans le répertoire concerné et exécutez :
 
   ``` bash
   ./evaluateurOnly.sh
