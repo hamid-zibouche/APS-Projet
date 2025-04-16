@@ -1,3 +1,5 @@
+# README.md
+
 ## 1. Avancement du projet
 
 Nous avons réalisé les étapes suivantes du projet : **APS0, APS1, APS1a, APS2 et APS3**.  
@@ -57,10 +59,10 @@ Nous avons suivi la spécification initiale et avons simplement ajouté la possi
 
 ## 5. Tests
 
-Pour chaque APS, le premier réflexe de test a toujour été de nous assurer que les fichiers de test de l'APS précédent avaient toujours le même comportment dans le nouvel APS (à part pour `APS1a`). Voici quelques cas limites que nous avons en plus jugé importants de tester:
+Pour chaque APS, le premier réflexe de test a toujours été de nous assurer que les fichiers de test de l'APS précédent avaient toujours le même comportment dans le nouvel APS (à part pour `APS1a`). Voici quelques cas limites que nous avons en plus jugé importants de tester:
 
 - le typage et la sémantique des abstractions en tant qu'arguments d'appel d'une fonction en APS0 (Test/t_09.aps)
-- la vérification du changement des valeurs aussi bien des constantes que des varibles dans les procédures de APS1 (Test/t_03.aps et Test/t_04.aps)
+- la vérification du changement des valeurs aussi bien pour les constantes que pour les variables dans les procédures de APS1 (Test/t_03.aps et Test/t_04.aps)
 - la restriction du changement de valeurs via SET aux variables et le traitement des adresses en arguments de procédures en APS1a (Test/t_04.aps)
 - la création et le traitement de matrices en APS2 (Test/t_03.aps)
 - la détection par le typeur de la présence de code mort dans les fonctions en APS3 (code après un RETURN)
